@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Выбор товара</title>
+    <!-- Подключение Telegram Web Apps SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Стили из style.css -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            color: #343a40;
+        }
+
+        .products {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .product {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            margin: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            width: 200px;
+        }
+
+        .product:hover {
+            transform: scale(1.05);
+        }
+
+        .product img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .product p {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .form {
+            margin-top: 20px;
+        }
+
+        .form input {
+            display: block;
+            width: 80%;
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .form button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Анимация загрузки */
+        .loading {
+            font-size: 18px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Выберите товар</h1>
+        <div class="products">
+            <div class="product" onclick="selectProduct('Товар 1')">
+                <img src="product1.png" alt="Товар 1">
+                <p>Товар 1</p>
+            </div>
+            <div class="product" onclick="selectProduct('Товар 2')">
+                <img src="product2.png" alt="Товар 2">
+                <p>Товар 2</p>
+            </div>
+            <div class="product" onclick="selectProduct('Товар 3')">
+                <img src="product3.png" alt="Товар 3">
+                <p>Товар 3</p>
+            </div>
+            <div class="product" onclick="selectProduct('Товар 4')">
+                <img src="product4.png" alt="Товар 4">
+                <p>Товар 4</p>
+            </div>
+        </div>
+        <div class="form" style="display: none;">
+            <h2 id="selected-product"></h2>
+            <p>Пожалуйста, введите ваше имя и email:</p>
+            <input type="text" id="name" placeholder="Ваше имя">
+            <input type="email" id="email" placeholder="Ваш email">
+            <button onclick="sendData()">Отправить данные</button>
+        </div>
+    </div>
+    <!-- Скрипты из script.js -->
+    <script>
+        let selectedProduct = '';
+
+        function selectProduct(productName) {
+            selectedProduct = productName;
+            document.querySelector('.products').style.display = 'none';
+            document.querySelector('.form').style.display = 'block';
+            document.getElementById('selected-product').innerText = `Вы выбрали: ${productName}`;
+        }
+
+        function sendData() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            if (!name || !email) {
+                alert('Пожалуйста, заполните все поля.');
+                return;
+            }
+
+            const data = {
+                product: selectedProduct,
+                name: name,
+                email: email
+            };
+
+            // Отправляем данные боту
+            Telegram.WebApp.sendData(JSON.stringify(data));
+
+            // Отображаем сообщение пользователю
+            document.querySelector('.form').innerHTML = '<p class="loading">Спасибо! Ваши данные отправлены.</p>';
+        }
+    </script>
+</body>
+</html>
