@@ -5,7 +5,7 @@
     <title>Выбор товара</title>
     <!-- Подключение Telegram Web Apps SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Стили из style.css -->
+    <!-- Стили -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -36,7 +36,15 @@
             padding: 20px;
             cursor: pointer;
             transition: transform 0.3s;
-            width: 200px;
+            flex: 1 1 calc(50% - 40px);
+            box-sizing: border-box;
+            max-width: 300px;
+        }
+
+        @media (max-width: 600px) {
+            .product {
+                flex: 1 1 100%;
+            }
         }
 
         .product:hover {
@@ -83,19 +91,19 @@
         <h1>Выберите товар</h1>
         <div class="products">
             <div class="product" onclick="selectProduct('Товар 1')">
-                <img src="product1.png" alt="Товар 1">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 1">
                 <p>Товар 1</p>
             </div>
             <div class="product" onclick="selectProduct('Товар 2')">
-                <img src="product2.png" alt="Товар 2">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 2">
                 <p>Товар 2</p>
             </div>
             <div class="product" onclick="selectProduct('Товар 3')">
-                <img src="product3.png" alt="Товар 3">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 3">
                 <p>Товар 3</p>
             </div>
             <div class="product" onclick="selectProduct('Товар 4')">
-                <img src="product4.png" alt="Товар 4">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 4">
                 <p>Товар 4</p>
             </div>
         </div>
@@ -107,7 +115,7 @@
             <button onclick="sendData()">Отправить данные</button>
         </div>
     </div>
-    <!-- Скрипты из script.js -->
+    <!-- Скрипты -->
     <script>
         let selectedProduct = '';
 
