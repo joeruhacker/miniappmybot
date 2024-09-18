@@ -1,8 +1,10 @@
+<!-- miniapp/index.html -->
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Выбор товара</title>
+    <title>Выбор товаров</title>
     <!-- Подключение Telegram Web Apps SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Стили -->
@@ -39,6 +41,7 @@
             flex: 1 1 calc(50% - 40px);
             box-sizing: border-box;
             max-width: 300px;
+            position: relative;
         }
 
         @media (max-width: 600px) {
@@ -65,14 +68,6 @@
             margin-top: 20px;
         }
 
-        .form input {
-            display: block;
-            width: 80%;
-            margin: 10px auto;
-            padding: 10px;
-            font-size: 16px;
-        }
-
         .form button {
             padding: 10px 20px;
             font-size: 16px;
@@ -84,68 +79,94 @@
             font-size: 18px;
             color: #007bff;
         }
+
+        /* Checkbox стили */
+        .checkbox-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2;
+        }
+
+        .checkbox-container input {
+            transform: scale(1.5);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Выберите товар</h1>
+        <h1>Выберите товары</h1>
         <div class="products">
-            <div class="product" onclick="selectProduct('Товар 1')">
+            <div class="product" onclick="toggleSelection(1)">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="product1" value="1">
+                </div>
                 <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 1">
-                <p>Товар 1</p>
+                <p>Цифровой товар 1 - 100₽</p>
             </div>
-            <div class="product" onclick="selectProduct('Товар 2')">
+            <div class="product" onclick="toggleSelection(2)">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="product2" value="2">
+                </div>
                 <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 2">
-                <p>Товар 2</p>
+                <p>Цифровой товар 2 - 200₽</p>
             </div>
-            <div class="product" onclick="selectProduct('Товар 3')">
+            <div class="product" onclick="toggleSelection(3)">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="product3" value="3">
+                </div>
                 <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 3">
-                <p>Товар 3</p>
+                <p>Цифровой товар 3 - 300₽</p>
             </div>
-            <div class="product" onclick="selectProduct('Товар 4')">
+            <div class="product" onclick="toggleSelection(4)">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="product4" value="4">
+                </div>
                 <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 4">
-                <p>Товар 4</p>
+                <p>Цифровой товар 4 - 400₽</p>
             </div>
         </div>
         <div class="form" style="display: none;">
-            <h2 id="selected-product"></h2>
-            <p>Пожалуйста, введите ваше имя и email:</p>
-            <input type="text" id="name" placeholder="Ваше имя">
-            <input type="email" id="email" placeholder="Ваш email">
-            <button onclick="sendData()">Отправить данные</button>
+            <button onclick="pay()">Оплатить</button>
         </div>
     </div>
     <!-- Скрипты -->
     <script>
-        let selectedProduct = '';
+        let selectedProducts = [];
 
-        function selectProduct(productName) {
-            selectedProduct = productName;
-            document.querySelector('.products').style.display = 'none';
-            document.querySelector('.form').style.display = 'block';
-            document.getElementById('selected-product').innerText = `Вы выбрали: ${productName}`;
+        function toggleSelection(productId) {
+            const checkbox = document.getElementById(`product${productId}`);
+            checkbox.checked = !checkbox.checked;
+
+            if (checkbox.checked) {
+                selectedProducts.push(parseInt(checkbox.value));
+            } else {
+                selectedProducts = selectedProducts.filter(id => id !== parseInt(checkbox.value));
+            }
+
+            // Показать или скрыть кнопку "Оплатить"
+            if (selectedProducts.length > 0) {
+                document.querySelector('.form').style.display = 'block';
+            } else {
+                document.querySelector('.form').style.display = 'none';
+            }
         }
 
-        function sendData() {
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-
-            if (!name || !email) {
-                alert('Пожалуйста, заполните все поля.');
+        function pay() {
+            if (selectedProducts.length === 0) {
+                alert('Пожалуйста, выберите хотя бы один товар.');
                 return;
             }
 
+            // Отправляем данные боту
             const data = {
-                product: selectedProduct,
-                name: name,
-                email: email
+                selected_products: selectedProducts
             };
 
-            // Отправляем данные боту
             Telegram.WebApp.sendData(JSON.stringify(data));
 
             // Отображаем сообщение пользователю
-            document.querySelector('.form').innerHTML = '<p class="loading">Спасибо! Ваши данные отправлены.</p>';
+            document.querySelector('.form').innerHTML = '<p class="loading">Переход к оплате...</p>';
         }
     </script>
 </body>
