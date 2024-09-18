@@ -1,5 +1,3 @@
-<!-- miniapp/index.html -->
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -113,11 +111,8 @@
                 return;
             }
 
-            // Отправляем данные боту
-            const data = {
-                selected_products: selectedProducts
-            };
-
+            // Отправляем данные боту через Telegram.WebApp.sendData
+            const data = { selected_products: selectedProducts };
             Telegram.WebApp.sendData(JSON.stringify(data));
 
             // Изменяем текст кнопки на индикатор загрузки
