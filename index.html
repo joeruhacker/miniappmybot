@@ -72,9 +72,15 @@
         function buyProduct(productId) {
             // Отправляем данные в бот
             const data = `webapp_buy_${productId}`;
-            Telegram.WebApp.sendData(data);
-            // Закрываем Web App после отправки данных
-            Telegram.WebApp.close();
+            try {
+                Telegram.WebApp.sendData(data);
+                console.log(`Отправлено: ${data}`);
+                // Закрываем Web App после отправки данных
+                Telegram.WebApp.close();
+            } catch (error) {
+                console.error("Ошибка при отправке данных:", error);
+                alert("Произошла ошибка при отправке данных. Попробуйте снова.");
+            }
         }
 
         // Инициализация страницы
