@@ -2,96 +2,83 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Магазин цифровых товаров</title>
-    <!-- Подключение Telegram WebApp JS API -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Магазин Цифровых Товаров</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        /* Основные стили для страницы */
+        /* CSS стили для оформления */
         body {
             font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
             padding: 20px;
-            background-color: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
         }
         .product {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-bottom: 20px;
+            background-color: #fff;
             border-radius: 5px;
-            background-color: var(--tg-theme-secondary-bg-color, #f9f9f9);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .product p {
-            font-size: 18px;
-            margin-bottom: 10px;
+        .product h3 {
+            margin: 0 0 10px 0;
         }
         .product button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
+            background-color: #008CBA;
             color: white;
             border: none;
+            padding: 10px 15px;
             border-radius: 3px;
             cursor: pointer;
-            font-size: 16px;
         }
         .product button:hover {
-            background-color: #45a049;
-        }
-        /* Стиль для сообщения об ошибке */
-        #errorMessage {
-            color: red;
-            text-align: center;
-            margin-top: 20px;
+            background-color: #005f6a;
         }
     </style>
 </head>
 <body>
-    <h1>Выберите товар</h1>
-    <div id="productList">
-        <!-- Пример товара 1 -->
-        <div class="product">
-            <p>Товар 1 - 100₽</p>
-            <button onclick="buyProduct(1)">Купить</button>
-        </div>
-        <!-- Пример товара 2 -->
-        <div class="product">
-            <p>Товар 2 - 200₽</p>
-            <button onclick="buyProduct(2)">Купить</button>
-        </div>
-    </div>
+    <h1>Выберите товар для покупки</h1>
+    <div id="products"></div>
 
-    <!-- Элемент для отображения ошибок -->
-    <div id="errorMessage"></div>
-
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Проверяем доступность Telegram WebApp API
-        if (window.Telegram && window.Telegram.WebApp) {
-            Telegram.WebApp.ready();
-        } else {
-            document.getElementById('errorMessage').innerText = 'Telegram WebApp API не инициализируется.';
-            console.error("Telegram WebApp API не инициализируется.");
+        // Список товаров должен совпадать с ботом
+        const products = [
+            {id: 1, name: 'Цифровой товар 1', price: 100},
+            {id: 2, name: 'Цифровой товар 2', price: 200},
+            // Добавьте больше товаров по необходимости
+        ];
+
+        // Функция для отображения товаров
+        function displayProducts() {
+            const productsDiv = document.getElementById('products');
+            products.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product';
+                
+                const title = document.createElement('h3');
+                title.innerText = `${product.name} - ${product.price}₽`;
+                
+                const buyButton = document.createElement('button');
+                buyButton.innerText = 'Купить';
+                buyButton.onclick = () => buyProduct(product.id);
+                
+                productDiv.appendChild(title);
+                productDiv.appendChild(buyButton);
+                productsDiv.appendChild(productDiv);
+            });
         }
 
-        // Функция отправки данных о товаре в бот
+        // Функция для обработки покупки
         function buyProduct(productId) {
-            if (window.Telegram && window.Telegram.WebApp) {
-                try {
-                    const productData = JSON.stringify({ product_id: productId });
-                    Telegram.WebApp.sendData(productData);  // Отправляем данные в бот
-                    alert('Данные отправлены в бот: Товар ' + productId);
-                } catch (error) {
-                    document.getElementById('errorMessage').innerText = 'Ошибка при отправке данных в бот.';
-                    console.error("Ошибка при отправке данных в бот:", error);
-                }
-            } else {
-                document.getElementById('errorMessage').innerText = 'Telegram WebApp API не доступен.';
-                console.error("Telegram WebApp API не доступен.");
-            }
+            // Отправляем данные в бот
+            const data = `webapp_buy_${productId}`;
+            Telegram.WebApp.sendData(data);
+            // Закрываем Web App после отправки данных
+            Telegram.WebApp.close();
         }
+
+        // Инициализация страницы
+        window.onload = displayProducts;
     </script>
 </body>
 </html>
