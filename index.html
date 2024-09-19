@@ -2,139 +2,41 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Выбор товаров</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Магазин цифровых товаров</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h1 {
-            color: #343a40;
-            text-align: center;
-        }
-
-        .products {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .product {
-            background-color: #fff;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            margin: 10px;
-            padding: 20px;
-            width: 200px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.3s;
-            position: relative;
-        }
-
-        .product:hover {
-            transform: scale(1.05);
-        }
-
-        .product input {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            transform: scale(1.5);
-        }
-
-        .pay-button {
-            display: block;
-            margin: 30px auto 0;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #28a745;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .pay-button:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-        }
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { text-align: center; }
+        .product { margin: 20px 0; }
+        button { padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
     </style>
 </head>
 <body>
-    <h1>Выберите товары</h1>
-    <div class="products">
-        <div class="product" onclick="toggleSelection(1)">
-            <input type="checkbox" id="product1" value="1">
-            <p>Цифровой товар 1 - 100₽</p>
+    <h1>Выберите товар</h1>
+    <div id="productList">
+        <!-- Пример отображения товара 1 -->
+        <div class="product">
+            <p>Товар 1 - 100₽</p>
+            <button onclick="buyProduct(1)">Купить</button>
         </div>
-        <div class="product" onclick="toggleSelection(2)">
-            <input type="checkbox" id="product2" value="2">
-            <p>Цифровой товар 2 - 200₽</p>
-        </div>
-        <div class="product" onclick="toggleSelection(3)">
-            <input type="checkbox" id="product3" value="3">
-            <p>Цифровой товар 3 - 300₽</p>
-        </div>
-        <div class="product" onclick="toggleSelection(4)">
-            <input type="checkbox" id="product4" value="4">
-            <p>Цифровой товар 4 - 400₽</p>
+        <!-- Пример отображения товара 2 -->
+        <div class="product">
+            <p>Товар 2 - 200₽</p>
+            <button onclick="buyProduct(2)">Купить</button>
         </div>
     </div>
-    <button class="pay-button" onclick="pay()" disabled>Оплатить</button>
 
     <script>
-        let selectedProducts = [];
-
-        // Список товаров должен совпадать с тем, что на сервере
-        const products = [
-            {id: 1, name: 'Цифровой товар 1', price: 100},
-            {id: 2, name: 'Цифровой товар 2', price: 200},
-            {id: 3, name: 'Цифровой товар 3', price: 300},
-            {id: 4, name: 'Цифровой товар 4', price: 400},
-            // Добавьте больше товаров по необходимости
-        ];
-
-        function toggleSelection(productId) {
-            const checkbox = document.getElementById(`product${productId}`);
-            checkbox.checked = !checkbox.checked;
-
-            if (checkbox.checked) {
-                selectedProducts.push(parseInt(checkbox.value));
-            } else {
-                selectedProducts = selectedProducts.filter(id => id !== parseInt(checkbox.value));
-            }
-
-            // Включить или отключить кнопку "Оплатить"
-            document.querySelector('.pay-button').disabled = selectedProducts.length === 0;
+        // Функция для отправки данных выбранного товара в Telegram
+        function buyProduct(productId) {
+            const productData = JSON.stringify({ product_id: productId });
+            Telegram.WebApp.sendData(productData);  // Отправка данных товара в бот
         }
 
-        function pay() {
-            if (selectedProducts.length === 0) {
-                alert('Пожалуйста, выберите хотя бы один товар.');
-                return;
-            }
-
-            // Отправляем данные боту
-            const data = {
-                selected_products: selectedProducts
-            };
-
-            Telegram.WebApp.sendData(JSON.stringify(data));
-
-            // Изменяем текст кнопки на индикатор загрузки
-            const payButton = document.querySelector('.pay-button');
-            payButton.textContent = 'Переход к оплате...';
-            payButton.disabled = true;
-        }
-
-        // Получение списка продуктов для отображения (опционально)
-        // Можно динамически загружать список продуктов с сервера
+        // Сообщаем Telegram, что мини-приложение готово
+        Telegram.WebApp.ready();
     </script>
 </body>
 </html>
