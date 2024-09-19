@@ -91,6 +91,15 @@
     <script>
         let selectedProducts = [];
 
+        // Список товаров должен совпадать с тем, что на сервере
+        const products = [
+            {id: 1, name: 'Цифровой товар 1', price: 100},
+            {id: 2, name: 'Цифровой товар 2', price: 200},
+            {id: 3, name: 'Цифровой товар 3', price: 300},
+            {id: 4, name: 'Цифровой товар 4', price: 400},
+            // Добавьте больше товаров по необходимости
+        ];
+
         function toggleSelection(productId) {
             const checkbox = document.getElementById(`product${productId}`);
             checkbox.checked = !checkbox.checked;
@@ -111,8 +120,11 @@
                 return;
             }
 
-            // Отправляем данные боту через Telegram.WebApp.sendData
-            const data = { selected_products: selectedProducts };
+            // Отправляем данные боту
+            const data = {
+                selected_products: selectedProducts
+            };
+
             Telegram.WebApp.sendData(JSON.stringify(data));
 
             // Изменяем текст кнопки на индикатор загрузки
@@ -120,6 +132,9 @@
             payButton.textContent = 'Переход к оплате...';
             payButton.disabled = true;
         }
+
+        // Получение списка продуктов для отображения (опционально)
+        // Можно динамически загружать список продуктов с сервера
     </script>
 </body>
 </html>
