@@ -39,6 +39,7 @@
     <h1>Выберите товар для покупки</h1>
     <div id="products"></div>
 
+    <!-- Подключение Telegram Web Apps JavaScript SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         // Список товаров должен совпадать с ботом
@@ -70,21 +71,36 @@
 
         // Функция для обработки покупки
         function buyProduct(productId) {
-            // Отправляем данные в бот
-            const data = `webapp_buy_${productId}`;
-            try {
-                Telegram.WebApp.sendData(data);
-                console.log(`Отправлено: ${data}`);
-                // Закрываем Web App после отправки данных
-                Telegram.WebApp.close();
-            } catch (error) {
-                console.error("Ошибка при отправке данных:", error);
-                alert("Произошла ошибка при отправке данных. Попробуйте снова.");
+            // Проверка, доступен ли объект Telegram.WebApp
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                const data = `webapp_buy_${productId}`;
+                try {
+                    console.log(`Отправка данных в бот: ${data}`);
+                    Telegram.WebApp.sendData(data);
+                    // Закрываем Web App после отправки данных
+                    Telegram.WebApp.close();
+                } catch (error) {
+                    console.error("Ошибка при отправке данных:", error);
+                    alert("Произошла ошибка при отправке данных. Попробуйте снова.");
+                }
+            } else {
+                console.error("Telegram.WebApp не доступен.");
+                alert("Ошибка: Telegram.WebApp не доступен. Пожалуйста, откройте это приложение через Telegram.");
             }
         }
 
         // Инициализация страницы
-        window.onload = displayProducts;
+        window.onload = () => {
+            // Проверка, загружен ли Telegram WebApp
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                console.log("Telegram.WebApp доступен.");
+                // Можно настроить дополнительные параметры WebApp, если необходимо
+                Telegram.WebApp.ready();
+            } else {
+                console.warn("Telegram.WebApp не доступен. Проверьте, что вы открываете Web App внутри Telegram.");
+            }
+            displayProducts();
+        };
     </script>
 </body>
 </html>
