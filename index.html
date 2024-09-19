@@ -2,105 +2,151 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Магазин Цифровых Товаров</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Выбор товара</title>
+    <!-- Подключение Telegram Web Apps SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Стили -->
     <style>
-        /* CSS стили для оформления */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
+            background-color: #f8f9fa;
             margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            text-align: center;
             padding: 20px;
         }
+
+        h1, h2 {
+            color: #343a40;
+        }
+
+        .products {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
         .product {
             background-color: #fff;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #dee2e6;
+            margin: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            flex: 1 1 calc(50% - 40px);
+            box-sizing: border-box;
+            max-width: 300px;
         }
-        .product h3 {
-            margin: 0 0 10px 0;
+
+        @media (max-width: 600px) {
+            .product {
+                flex: 1 1 100%;
+            }
         }
-        .product button {
-            background-color: #008CBA;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 3px;
+
+        .product:hover {
+            transform: scale(1.05);
+        }
+
+        .product img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .product p {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .form {
+            margin-top: 20px;
+        }
+
+        .form input {
+            display: block;
+            width: 80%;
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .form button {
+            padding: 10px 20px;
+            font-size: 16px;
             cursor: pointer;
         }
-        .product button:hover {
-            background-color: #005f6a;
+
+        /* Анимация загрузки */
+        .loading {
+            font-size: 18px;
+            color: #007bff;
         }
     </style>
 </head>
 <body>
-    <h1>Выберите товар для покупки</h1>
-    <div id="products"></div>
-
-    <!-- Подключение Telegram Web Apps JavaScript SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <div class="container">
+        <h1>Выберите товар</h1>
+        <div class="products">
+            <div class="product" onclick="selectProduct('Товар 1')">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 1">
+                <p>Товар 1</p>
+            </div>
+            <div class="product" onclick="selectProduct('Товар 2')">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 2">
+                <p>Товар 2</p>
+            </div>
+            <div class="product" onclick="selectProduct('Товар 3')">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 3">
+                <p>Товар 3</p>
+            </div>
+            <div class="product" onclick="selectProduct('Товар 4')">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 4">
+                <p>Товар 4</p>
+            </div>
+        </div>
+        <div class="form" style="display: none;">
+            <h2 id="selected-product"></h2>
+            <p>Пожалуйста, введите ваше имя и email:</p>
+            <input type="text" id="name" placeholder="Ваше имя">
+            <input type="email" id="email" placeholder="Ваш email">
+            <button onclick="sendData()">Отправить данные</button>
+        </div>
+    </div>
+    <!-- Скрипты -->
     <script>
-        // Список товаров должен совпадать с ботом
-        const products = [
-            {id: 1, name: 'Цифровой товар 1', price: 100},
-            {id: 2, name: 'Цифровой товар 2', price: 200},
-            // Добавьте больше товаров по необходимости
-        ];
+        let selectedProduct = '';
 
-        // Функция для отображения товаров
-        function displayProducts() {
-            const productsDiv = document.getElementById('products');
-            products.forEach(product => {
-                const productDiv = document.createElement('div');
-                productDiv.className = 'product';
-                
-                const title = document.createElement('h3');
-                title.innerText = `${product.name} - ${product.price}₽`;
-                
-                const buyButton = document.createElement('button');
-                buyButton.innerText = 'Купить';
-                buyButton.onclick = () => buyProduct(product.id);
-                
-                productDiv.appendChild(title);
-                productDiv.appendChild(buyButton);
-                productsDiv.appendChild(productDiv);
-            });
+        function selectProduct(productName) {
+            selectedProduct = productName;
+            document.querySelector('.products').style.display = 'none';
+            document.querySelector('.form').style.display = 'block';
+            document.getElementById('selected-product').innerText = `Вы выбрали: ${productName}`;
         }
 
-        // Функция для обработки покупки
-        function buyProduct(productId) {
-            // Проверка, доступен ли объект Telegram.WebApp
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                const data = `webapp_buy_${productId}`;
-                try {
-                    console.log(`Отправка данных в бот: ${data}`);
-                    Telegram.WebApp.sendData(data);
-                    // Закрываем Web App после отправки данных
-                    Telegram.WebApp.close();
-                } catch (error) {
-                    console.error("Ошибка при отправке данных:", error);
-                    alert("Произошла ошибка при отправке данных. Попробуйте снова.");
-                }
-            } else {
-                console.error("Telegram.WebApp не доступен.");
-                alert("Ошибка: Telegram.WebApp не доступен. Пожалуйста, откройте это приложение через Telegram.");
-            }
-        }
+        function sendData() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
 
-        // Инициализация страницы
-        window.onload = () => {
-            // Проверка, загружен ли Telegram WebApp
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                console.log("Telegram.WebApp доступен.");
-                // Можно настроить дополнительные параметры WebApp, если необходимо
-                Telegram.WebApp.ready();
-            } else {
-                console.warn("Telegram.WebApp не доступен. Проверьте, что вы открываете Web App внутри Telegram.");
+            if (!name || !email) {
+                alert('Пожалуйста, заполните все поля.');
+                return;
             }
-            displayProducts();
-        };
+
+            const data = {
+                product: selectedProduct,
+                name: name,
+                email: email
+            };
+
+            // Отправляем данные боту
+            Telegram.WebApp.sendData(JSON.stringify(data));
+
+            // Отображаем сообщение пользователю
+            document.querySelector('.form').innerHTML = '<p class="loading">Спасибо! Ваши данные отправлены.</p>';
+        }
     </script>
 </body>
 </html>
