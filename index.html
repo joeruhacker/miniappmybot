@@ -3,14 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <title>Магазин цифровых товаров</title>
+    <!-- Подключение Telegram WebApp JS API -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        h1 { text-align: center; }
-        .product { margin: 20px 0; }
-        button { padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #45a049; }
+        /* Основные стили для страницы */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .product {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: var(--tg-theme-secondary-bg-color, #f9f9f9);
+        }
+        .product p {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .product button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .product button:hover {
+            background-color: #45a049;
+        }
+        /* Стиль для сообщения об ошибке */
+        #errorMessage {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -18,25 +54,65 @@
     <div id="productList">
         <!-- Пример отображения товара 1 -->
         <div class="product">
-            <p>Товар 1 - 100₽</p>
+            <p>Цифровой товар 1 - 100₽</p>
             <button onclick="buyProduct(1)">Купить</button>
         </div>
         <!-- Пример отображения товара 2 -->
         <div class="product">
-            <p>Товар 2 - 200₽</p>
+            <p>Цифровой товар 2 - 200₽</p>
             <button onclick="buyProduct(2)">Купить</button>
         </div>
+        <!-- Добавьте больше товаров по необходимости -->
     </div>
 
+    <!-- Элемент для отображения сообщений об ошибках -->
+    <div id="errorMessage"></div>
+
     <script>
-        // Функция для отправки данных выбранного товара в Telegram
-        function buyProduct(productId) {
-            const productData = JSON.stringify({ product_id: productId });
-            Telegram.WebApp.sendData(productData);  // Отправка данных товара в бот
+        // Проверяем, доступен ли объект Telegram.WebApp
+        if (window.Telegram && window.Telegram.WebApp) {
+            // Сообщаем Telegram, что мини-приложение готово
+            Telegram.WebApp.ready();
+        } else {
+            // Если Telegram WebApp API недоступен, отображаем ошибку
+            document.getElementById('errorMessage').innerText = 'Telegram WebApp API не инициализируется.';
+            console.error("Telegram WebApp API не инициализируется.");
         }
 
-        // Сообщаем Telegram, что мини-приложение готово
-        Telegram.WebApp.ready();
+        /**
+         * Функция для отправки данных о выбранном товаре в Telegram-бот
+         * @param {number} productId - ID выбранного товара
+         */
+        function buyProduct(productId) {
+            if (window.Telegram && window.Telegram.WebApp) {
+                try {
+                    // Создаем объект с данными о товаре
+                    const productData = {
+                        product_id: productId
+                    };
+                    // Преобразуем объект в JSON-строку
+                    const productDataString = JSON.stringify(productData);
+                    // Отправляем данные в бот
+                    Telegram.WebApp.sendData(productDataString);
+                    // Для отладки: отображаем уведомление об отправке данных
+                    alert('Данные отправлены в бот: Товар ' + productId);
+                } catch (error) {
+                    // Если произошла ошибка при отправке данных, отображаем сообщение об ошибке
+                    document.getElementById('errorMessage').innerText = 'Ошибка при отправке данных в бот.';
+                    console.error("Ошибка при отправке данных в бот:", error);
+                }
+            } else {
+                // Если Telegram WebApp API недоступен, отображаем ошибку
+                document.getElementById('errorMessage').innerText = 'Telegram WebApp API не доступен.';
+                console.error("Telegram WebApp API не доступен.");
+            }
+        }
+
+        // Обработка события закрытия веб-приложения (опционально)
+        Telegram.WebApp.onEvent('mainButtonClicked', function() {
+            // Здесь можно обработать нажатие главной кнопки, если она используется
+            console.log('Главная кнопка нажата.');
+        });
     </script>
 </body>
 </html>
