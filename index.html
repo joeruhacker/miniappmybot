@@ -7,7 +7,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Стили -->
     <style>
-        /* Ваши стили остаются без изменений */
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f9fa;
@@ -66,14 +65,6 @@
             margin-top: 20px;
         }
 
-        .form input {
-            display: block;
-            width: 80%;
-            margin: 10px auto;
-            padding: 10px;
-            font-size: 16px;
-        }
-
         .form button {
             padding: 10px 20px;
             font-size: 16px;
@@ -110,10 +101,7 @@
         </div>
         <div class="form" style="display: none;">
             <h2 id="selected-product"></h2>
-            <p>Пожалуйста, введите ваше имя и email:</p>
-            <input type="text" id="name" placeholder="Ваше имя">
-            <input type="email" id="email" placeholder="Ваш email">
-            <button onclick="sendData()">Отправить данные</button>
+            <button onclick="sendData()">Отправить заказ</button>
         </div>
     </div>
     <!-- Скрипты -->
@@ -136,26 +124,28 @@
         }
 
         function sendData() {
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
+            if (!selectedProduct) {
+                alert('Пожалуйста, выберите товар.');
+                return;
+            }
 
-            if (!name || !email) {
-                alert('Пожалуйста, заполните все поля.');
+            const price = productPrices[selectedProduct];
+
+            if (!price) {
+                alert('Произошла ошибка с ценой товара.');
                 return;
             }
 
             const data = {
                 product: selectedProduct,
-                price: productPrices[selectedProduct],
-                name: name,
-                email: email
+                price: price
             };
 
             // Отправляем данные боту
             Telegram.WebApp.sendData(JSON.stringify(data));
 
             // Отображаем сообщение пользователю
-            document.querySelector('.form').innerHTML = '<p class="loading">Спасибо! Ваши данные отправлены.</p>';
+            document.querySelector('.form').innerHTML = '<p class="loading">Спасибо! Ваш заказ отправлен.</p>';
         }
     </script>
 </body>
