@@ -3,54 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <title>Магазин Цифровых Товаров</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
             padding: 20px;
         }
         .product {
-            margin: 10px 0;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .product h3 {
+            margin: 0 0 10px 0;
         }
         .product button {
-            margin-left: 10px;
+            padding: 10px 15px;
+            background-color: #0088cc;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .product button:hover {
+            background-color: #005f99;
         }
     </style>
 </head>
 <body>
-    <h1>Выберите товар для покупки</h1>
-    <div class="product">
-        <span>Товар 1: Электронная книга - 500₽</span>
-        <button onclick="buy('product1', 500)">Купить</button>
+    <h1>Магазин Цифровых Товаров</h1>
+    <div class="product" data-id="robox-190">
+        <h3>Робукс Карта - 190₽</h3>
+        <button onclick="buyProduct('robox-190')">Купить</button>
     </div>
-    <div class="product">
-        <span>Товар 2: Онлайн-курс - 1500₽</span>
-        <button onclick="buy('product2', 1500)">Купить</button>
+    <div class="product" data-id="itunes-290">
+        <h3>iTunes Карта - 290₽</h3>
+        <button onclick="buyProduct('itunes-290')">Купить</button>
     </div>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        function buy(product, price) {
-            // Получаем информацию о пользователе из Telegram Web App
-            const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
+        function buyProduct(productId) {
+            // Получаем информацию о пользователе из Telegram Web Apps
+            const user = Telegram.WebApp.initDataUnsafe.user;
+            const chatId = Telegram.WebApp.initDataUnsafe.user.id;
 
-            // Отправляем информацию о товаре на серверную часть через n8n
-            fetch('https://n8n.chatforma.com/webhook/webhook/payment', {
+            // Отправляем сообщение боту с id товара и chat_id пользователя
+            fetch('https://a29453-f7c5.t.d-f.pw', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ product, price, userId }),
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    product_id: productId
+                }),
             })
             .then(response => response.json())
             .then(data => {
-                if(data.success) {
-                    alert('Платеж успешно создан. Проверьте бот для завершения оплаты.');
+                if (data.success) {
+                    Telegram.WebApp.close();
+                    Telegram.WebApp.showAlert("Заказ успешно создан! Проверьте ваш бот для оплаты.");
                 } else {
-                    alert('Ошибка при создании платежа.');
+                    Telegram.WebApp.showAlert("Произошла ошибка. Попробуйте позже.");
                 }
             })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                alert('Произошла ошибка при обработке платежа.');
+            .catch((error) => {
+                console.error('Error:', error);
+                Telegram.WebApp.showAlert("Произошла ошибка. Попробуйте позже.");
             });
         }
     </script>
