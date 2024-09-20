@@ -2,151 +2,35 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Выбор товара</title>
-    <!-- Подключение Telegram Web Apps SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Стили -->
+    <title>Мини-приложение</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            text-align: center;
-            padding: 20px;
-        }
-
-        h1, h2 {
-            color: #343a40;
-        }
-
-        .products {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .product {
-            background-color: #fff;
-            border: 1px solid #dee2e6;
-            margin: 10px;
-            padding: 20px;
-            cursor: pointer;
-            transition: transform 0.3s;
-            flex: 1 1 calc(50% - 40px);
-            box-sizing: border-box;
-            max-width: 300px;
-        }
-
-        @media (max-width: 600px) {
-            .product {
-                flex: 1 1 100%;
-            }
-        }
-
-        .product:hover {
-            transform: scale(1.05);
-        }
-
-        .product img {
-            max-width: 100%;
-            height: auto;
-        }
-
-        .product p {
-            margin-top: 10px;
-            font-size: 16px;
-        }
-
-        .form {
-            margin-top: 20px;
-        }
-
-        .form button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        /* Анимация загрузки */
-        .loading {
-            font-size: 18px;
-            color: #007bff;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        .product { border: 1px solid #ccc; padding: 20px; margin: 10px; display: inline-block; }
+        .product button { padding: 10px 20px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Выберите товар</h1>
-        <div class="products">
-            <div class="product" onclick="selectProduct('Товар 1')">
-                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 1">
-                <p>Товар 1</p>
-            </div>
-            <div class="product" onclick="selectProduct('Товар 2')">
-                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 2">
-                <p>Товар 2</p>
-            </div>
-            <div class="product" onclick="selectProduct('Товар 3')">
-                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 3">
-                <p>Товар 3</p>
-            </div>
-            <div class="product" onclick="selectProduct('Товар 4')">
-                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 4">
-                <p>Товар 4</p>
-            </div>
-        </div>
-        <div class="form" style="display: none;">
-            <h2 id="selected-product"></h2>
-            <button onclick="sendData()">Отправить заказ</button>
-        </div>
+    <h1>Выберите товар</h1>
+    <div class="product">
+        <h2>Товар 1</h2>
+        <p>Цена: 100₽</p>
+        <button onclick="selectProduct('Товар 1', 100)">Выбрать</button>
     </div>
-    <!-- Скрипты -->
+    <div class="product">
+        <h2>Товар 2</h2>
+        <p>Цена: 200₽</p>
+        <button onclick="selectProduct('Товар 2', 200)">Выбрать</button>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        let selectedProduct = '';
-
-        // Объект с ценами товаров (в копейках, так как Telegram принимает цены в наименьшей валютной единице)
-        const productPrices = {
-            'Товар 1': 1000, // 10.00 руб
-            'Товар 2': 2000, // 20.00 руб
-            'Товар 3': 3000, // 30.00 руб
-            'Товар 4': 4000  // 40.00 руб
-        };
-
-        function selectProduct(productName) {
-            selectedProduct = productName;
-            document.querySelector('.products').style.display = 'none';
-            document.querySelector('.form').style.display = 'block';
-            document.getElementById('selected-product').innerText = `Вы выбрали: ${productName}`;
-        }
-
-        function sendData() {
-            if (!selectedProduct) {
-                alert('Пожалуйста, выберите товар.');
-                return;
-            }
-
-            const price = productPrices[selectedProduct];
-
-            if (!price) {
-                alert('Произошла ошибка с ценой товара.');
-                return;
-            }
-
-            const data = {
-                product: selectedProduct,
-                price: price
-            };
-
-            // Отправляем данные боту
+        function selectProduct(name, price) {
+            const data = { name: name, price: price };
             Telegram.WebApp.sendData(JSON.stringify(data));
-
-            // Отображаем сообщение пользователю
-            document.querySelector('.form').innerHTML = '<p class="loading">Спасибо! Ваш заказ отправлен.</p>';
+            Telegram.WebApp.close();
         }
+
+        Telegram.WebApp.ready();
     </script>
 </body>
 </html>
