@@ -2,46 +2,69 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Магазин цифровых товаров</title>
+    <title>Мини-Магазин</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-        .product { border: 1px solid #ccc; padding: 20px; margin: 20px; display: inline-block; }
-        button { padding: 10px 20px; margin-top: 10px; }
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .product { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+        .cart { margin-top: 20px; }
+        button { padding: 10px 20px; }
     </style>
 </head>
 <body>
-    <h1>Выберите товар</h1>
-    <div class="product">
-        <h2>Айтюнс карта</h2>
-        <p>Цена: 100 руб</p>
-        <input type="number" id="itunes_qty" value="1" min="1">
-        <button onclick="buy('itunes')">Купить</button>
+    <h1>Магазин цифровых товаров</h1>
+    <div class="product" data-name="Робуксы" data-price="100">
+        <h2>Робуксы</h2>
+        <p>Цена: 100 руб.</p>
+        <input type="number" min="1" value="1" class="quantity">
+        <button onclick="addToCart(this)">Добавить в корзину</button>
     </div>
-    <div class="product">
-        <h2>Робукс</h2>
-        <p>Цена: 200 руб</p>
-        <input type="number" id="robux_qty" value="1" min="1">
-        <button onclick="buy('robux')">Купить</button>
+    <div class="product" data-name="Айтюнс карты" data-price="100">
+        <h2>Айтюнс карты</h2>
+        <p>Цена: 100 руб.</p>
+        <input type="number" min="1" value="1" class="quantity">
+        <button onclick="addToCart(this)">Добавить в корзину</button>
+    </div>
+    <div class="cart">
+        <h2>Корзина</h2>
+        <ul id="cart-items"></ul>
+        <button onclick="checkout()">Оплатить</button>
     </div>
 
     <script>
-        function buy(product) {
-            let quantity = 1;
-            let price = 0;
-            if (product === 'itunes') {
-                quantity = document.getElementById('itunes_qty').value;
-                price = 100;
-            } else if (product === 'robux') {
-                quantity = document.getElementById('robux_qty').value;
-                price = 200;
+        let cart = [];
+
+        function addToCart(button) {
+            const productDiv = button.parentElement;
+            const name = productDiv.getAttribute('data-name');
+            const price = parseFloat(productDiv.getAttribute('data-price'));
+            const quantity = parseInt(productDiv.querySelector('.quantity').value);
+
+            const existing = cart.find(item => item.name === name);
+            if (existing) {
+                existing.quantity += quantity;
+            } else {
+                cart.push({ name, price, quantity });
             }
-            const data = {
-                items: [
-                    { product: product, price: price, quantity: parseInt(quantity) }
-                ]
-            };
-            // Отправка данных боту
-            Telegram.WebApp.sendData(JSON.stringify(data));
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartItems = document.getElementById('cart-items');
+            cartItems.innerHTML = '';
+            cart.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.name} - ${item.quantity} шт. - ${item.price * item.quantity} руб.`;
+                cartItems.appendChild(li);
+            });
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                alert('Корзина пуста!');
+                return;
+            }
+            const cartData = JSON.stringify(cart);
+            Telegram.WebApp.sendData('cart_' + cartData);
         }
     </script>
 </body>
