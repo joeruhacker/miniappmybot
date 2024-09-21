@@ -31,26 +31,30 @@
     </div>
 
     <script>
+        // Инициализируем пустую корзину
         let cart = [];
 
+        // Функция добавления товара в корзину
         function addToCart(button) {
             const productDiv = button.parentElement;
             const name = productDiv.getAttribute('data-name');
             const price = parseFloat(productDiv.getAttribute('data-price'));
             const quantity = parseInt(productDiv.querySelector('.quantity').value);
 
-            const existing = cart.find(item => item.name === name);
-            if (existing) {
-                existing.quantity += quantity;
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.quantity += quantity;
             } else {
                 cart.push({ name, price, quantity });
             }
-            renderCart();
+
+            renderCart();  // Обновляем корзину на экране
         }
 
+        // Функция отображения содержимого корзины
         function renderCart() {
             const cartItems = document.getElementById('cart-items');
-            cartItems.innerHTML = '';
+            cartItems.innerHTML = '';  // Очищаем текущие элементы
             cart.forEach(item => {
                 const li = document.createElement('li');
                 li.textContent = `${item.name} - ${item.quantity} шт. - ${item.price * item.quantity} руб.`;
@@ -58,14 +62,34 @@
             });
         }
 
+        // Функция оформления заказа
         function checkout() {
             if (cart.length === 0) {
                 alert('Корзина пуста!');
                 return;
             }
-            const cartData = JSON.stringify(cart);
-            Telegram.WebApp.sendData('cart_' + cartData);
+
+            const cartData = JSON.stringify(cart);  // Преобразуем корзину в строку JSON
+
+            // Проверяем, что Telegram WebApp API доступен
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                console.log('Отправка данных в бот:', cartData);  // Логирование данных корзины
+
+                // Отправляем данные в бот
+                Telegram.WebApp.sendData(cartData);
+            } else {
+                alert('Ошибка: Мини-приложение должно быть открыто в Telegram!');
+            }
         }
+
+        // Инициализация WebApp при загрузке страницы
+        window.onload = function() {
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                Telegram.WebApp.ready();  // Сообщаем Telegram, что WebApp готово
+            } else {
+                alert('Ошибка: Мини-приложение должно быть открыто в Telegram!');
+            }
+        };
     </script>
 </body>
 </html>
