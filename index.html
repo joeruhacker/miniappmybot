@@ -26,22 +26,22 @@
 
     <script>
         function buy(product) {
-            let quantity = 1
-            let price = 0
+            let quantity = 1;
+            let price = 0;
             if (product === 'itunes') {
-                quantity = document.getElementById('itunes_qty').value
-                price = 100
+                quantity = document.getElementById('itunes_qty').value;
+                price = 100;
             } else if (product === 'robux') {
-                quantity = document.getElementById('robux_qty').value
-                price = 200
+                quantity = document.getElementById('robux_qty').value;
+                price = 200;
             }
             const data = {
                 items: [
                     { product: product, price: price, quantity: parseInt(quantity) }
                 ]
-            }
+            };
             // Отправка данных боту
-            Telegram.WebApp.sendData(JSON.stringify(data))
+            Telegram.WebApp.sendData(JSON.stringify(data));
         }
     </script>
 </body>
