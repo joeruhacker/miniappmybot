@@ -2,85 +2,151 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Мини-Магазин</title>
+    <title>Выбор товара</title>
+    <!-- Подключение Telegram Web Apps SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Стили -->
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .product { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-        .cart { margin-top: 20px; }
-        button { padding: 10px 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            color: #343a40;
+        }
+
+        .products {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .product {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            margin: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            flex: 1 1 calc(50% - 40px);
+            box-sizing: border-box;
+            max-width: 300px;
+        }
+
+        @media (max-width: 600px) {
+            .product {
+                flex: 1 1 100%;
+            }
+        }
+
+        .product:hover {
+            transform: scale(1.05);
+        }
+
+        .product img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .product p {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .form {
+            margin-top: 20px;
+        }
+
+        .form input {
+            display: block;
+            width: 80%;
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .form button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Анимация загрузки */
+        .loading {
+            font-size: 18px;
+            color: #007bff;
+        }
     </style>
 </head>
 <body>
-    <h1>Магазин цифровых товаров</h1>
-    <div class="product" data-name="Робуксы" data-price="100">
-        <h2>Робуксы</h2>
-        <p>Цена: 100 руб.</p>
-        <input type="number" min="1" value="1" class="quantity">
-        <button onclick="addToCart(this)">Добавить в корзину</button>
+    <div class="container">
+        <h1>Выберите товар</h1>
+        <div class="products">
+            <div class="product" onclick="selectProduct('Товар 1')">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 1">
+                <p>Товар 1</p>
+            </div>
+            <div class="product" onclick="selectProduct('Товар 2')">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 2">
+                <p>Товар 2</p>
+            </div>
+            <div class="product" onclick="selectProduct('Товар 3')">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 3">
+                <p>Товар 3</p>
+            </div>
+            <div class="product" onclick="selectProduct('Товар 4')">
+                <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 4">
+                <p>Товар 4</p>
+            </div>
+        </div>
+        <div class="form" style="display: none;">
+            <h2 id="selected-product"></h2>
+            <p>Пожалуйста, введите ваше имя и email:</p>
+            <input type="text" id="name" placeholder="Ваше имя">
+            <input type="email" id="email" placeholder="Ваш email">
+            <button onclick="sendData()">Отправить данные</button>
+        </div>
     </div>
-    <div class="product" data-name="Айтюнс карты" data-price="100">
-        <h2>Айтюнс карты</h2>
-        <p>Цена: 100 руб.</p>
-        <input type="number" min="1" value="1" class="quantity">
-        <button onclick="addToCart(this)">Добавить в корзину</button>
-    </div>
-    <div class="cart">
-        <h2>Корзина</h2>
-        <ul id="cart-items"></ul>
-        <button onclick="sendOrder()">Отправить заказ</button>
-    </div>
-
+    <!-- Скрипты -->
     <script>
-        let cart = [];
+        let selectedProduct = '';
 
-        function addToCart(button) {
-            const productDiv = button.parentElement;
-            const name = productDiv.getAttribute('data-name');
-            const price = parseFloat(productDiv.getAttribute('data-price'));
-            const quantity = parseInt(productDiv.querySelector('.quantity').value);
-
-            const existingItem = cart.find(item => item.name === name);
-            if (existingItem) {
-                existingItem.quantity += quantity;
-            } else {
-                cart.push({ name, price, quantity });
-            }
-
-            renderCart();
+        function selectProduct(productName) {
+            selectedProduct = productName;
+            document.querySelector('.products').style.display = 'none';
+            document.querySelector('.form').style.display = 'block';
+            document.getElementById('selected-product').innerText = `Вы выбрали: ${productName}`;
         }
 
-        function renderCart() {
-            const cartItems = document.getElementById('cart-items');
-            cartItems.innerHTML = '';
-            cart.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = `${item.name} - ${item.quantity} шт. - ${item.price * item.quantity} руб.`;
-                cartItems.appendChild(li);
-            });
-        }
+        function sendData() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
 
-        function sendOrder() {
-            if (cart.length === 0) {
-                alert('Корзина пуста!');
+            if (!name || !email) {
+                alert('Пожалуйста, заполните все поля.');
                 return;
             }
 
-            const cartData = JSON.stringify(cart);
+            const data = {
+                product: selectedProduct,
+                name: name,
+                email: email
+            };
 
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                Telegram.WebApp.sendData(cartData);
-            } else {
-                alert('Ошибка: Мини-приложение должно быть открыто в Telegram!');
-            }
+            // Отправляем данные боту
+            Telegram.WebApp.sendData(JSON.stringify(data));
+
+            // Отображаем сообщение пользователю
+            document.querySelector('.form').innerHTML = '<p class="loading">Спасибо! Ваши данные отправлены.</p>';
         }
-
-        window.onload = function() {
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                Telegram.WebApp.ready();
-            } else {
-                alert('Ошибка: Мини-приложение должно быть открыто в Telegram!');
-            }
-        };
     </script>
 </body>
 </html>
