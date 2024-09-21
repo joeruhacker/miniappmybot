@@ -2,110 +2,47 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Мини-Магазин</title>
+    <title>Магазин цифровых товаров</title>
     <style>
-        /* Стилизация в стиле Apple */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f5f5f7;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 50px;
-        }
-        h1 {
-            color: #333;
-        }
-        .product {
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin: 10px;
-            width: 300px;
-            text-align: center;
-        }
-        .product h2 {
-            margin-bottom: 10px;
-            color: #555;
-        }
-        .product button {
-            background-color: #007aff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .product button:hover {
-            background-color: #0051a8;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        .product { border: 1px solid #ccc; padding: 20px; margin: 20px; display: inline-block; }
+        button { padding: 10px 20px; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <h1>Добро пожаловать в Мини-Магазин</h1>
-    <div class="product" data-product-id="robux_100" data-price="100">
-        <h2>Robux - 100 руб.</h2>
-        <button>Купить</button>
+    <h1>Выберите товар</h1>
+    <div class="product">
+        <h2>Айтюнс карта</h2>
+        <p>Цена: 100 руб</p>
+        <input type="number" id="itunes_qty" value="1" min="1">
+        <button onclick="buy('itunes')">Купить</button>
     </div>
-    <div class="product" data-product-id="robux_200" data-price="200">
-        <h2>Robux - 200 руб.</h2>
-        <button>Купить</button>
-    </div>
-    <div class="product" data-product-id="itunes_100" data-price="100">
-        <h2>iTunes карта - 100 руб.</h2>
-        <button>Купить</button>
-    </div>
-    <div class="product" data-product-id="itunes_200" data-price="200">
-        <h2>iTunes карта - 200 руб.</h2>
-        <button>Купить</button>
+    <div class="product">
+        <h2>Робукс</h2>
+        <p>Цена: 200 руб</p>
+        <input type="number" id="robux_qty" value="1" min="1">
+        <button onclick="buy('robux')">Купить</button>
     </div>
 
     <script>
-        // Функция для получения данных пользователя из Telegram Web App
-        function getTelegramData() {
-            // Проверяем, доступен ли объект Telegram
-            if (window.Telegram.WebApp) {
-                return window.Telegram.WebApp.initData;
+        function buy(product) {
+            let quantity = 1
+            let price = 0
+            if (product === 'itunes') {
+                quantity = document.getElementById('itunes_qty').value
+                price = 100
+            } else if (product === 'robux') {
+                quantity = document.getElementById('robux_qty').value
+                price = 200
             }
-            return '';
+            const data = {
+                items: [
+                    { product: product, price: price, quantity: parseInt(quantity) }
+                ]
+            }
+            // Отправка данных боту
+            Telegram.WebApp.sendData(JSON.stringify(data))
         }
-
-        // Обработчик клика на кнопку "Купить"
-        document.querySelectorAll('.product button').forEach(button => {
-            button.addEventListener('click', () => {
-                const productDiv = button.parentElement;
-                const productId = productDiv.getAttribute('data-product-id');
-                const price = productDiv.getAttribute('data-price');
-
-                // Отправка данных на сервер через fetch
-                fetch('https://a29462-bad8.u.d-f.pw/create_order', {  // Замените YOUR_SERVER_DOMAIN на ваш домен
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        product_id: productId,
-                        price: price,
-                        telegram_data: getTelegramData()
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Открытие ссылки на оплату через Telegram
-                        Telegram.WebApp.openLink(data.invoice_url, { try_instant_view: true });
-                    } else {
-                        alert('Ошибка при создании заказа: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                    alert('Произошла ошибка при обработке запроса.');
-                });
-            });
-        });
     </script>
 </body>
 </html>
