@@ -49,11 +49,17 @@
     </div>
 
     <script>
-        // Инициализация Telegram Web App
-        let tg = window.Telegram.WebApp;
-        tg.expand(); // Расширяем на весь экран
+        // Проверяем, доступен ли объект Telegram WebApp
+        let tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.expand(); // Расширяем на весь экран
+        } else {
+            console.warn('Telegram WebApp не доступен. Используется режим тестирования.');
+        }
 
-        let userId = tg.initDataUnsafe.user.id;
+        // Получаем userId или используем заглушку для тестирования
+        let userId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id ? tg.initDataUnsafe.user.id : 'TEST_USER_ID';
+
         let cart = [];
         let totalPrice = 0;
 
@@ -83,17 +89,24 @@
                 cart: cart,
                 total_price: totalPrice
             };
-            fetch('https://n8n.chatforma.com/webhook/webhook', {
+            fetch('https://YOUR_N8N_WEBHOOK_URL', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             }).then(function(response) {
                 if (response.ok) {
                     alert('Заказ отправлен! Проверьте бот для получения счета.');
-                    tg.close(); // Закрываем веб-приложение
+                    if (tg) {
+                        tg.close(); // Закрываем веб-приложение
+                    } else {
+                        console.warn('WebApp не может быть закрыт. Telegram WebApp не доступен.');
+                    }
                 } else {
                     alert('Ошибка при отправке заказа.');
                 }
+            }).catch(function(error) {
+                console.error('Ошибка при отправке данных:', error);
+                alert('Ошибка при отправке заказа.');
             });
         }
     </script>
