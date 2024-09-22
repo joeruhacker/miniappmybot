@@ -90,21 +90,25 @@
     <div class="container">
         <h1>Выберите товар</h1>
         <div class="products">
-            <div class="product" onclick="selectProduct('Товар 1')">
+            <div class="product" onclick="selectProduct('Товар 1', 100)">
                 <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 1">
                 <p>Товар 1</p>
+                <p>Цена: 100 ₽</p>
             </div>
-            <div class="product" onclick="selectProduct('Товар 2')">
+            <div class="product" onclick="selectProduct('Товар 2', 200)">
                 <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 2">
                 <p>Товар 2</p>
+                <p>Цена: 200 ₽</p>
             </div>
-            <div class="product" onclick="selectProduct('Товар 3')">
+            <div class="product" onclick="selectProduct('Товар 3', 150)">
                 <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 3">
                 <p>Товар 3</p>
+                <p>Цена: 150 ₽</p>
             </div>
-            <div class="product" onclick="selectProduct('Товар 4')">
+            <div class="product" onclick="selectProduct('Товар 4', 250)">
                 <img src="https://i.pinimg.com/564x/cb/62/90/cb6290ec436941da956f4a6080a29d22.jpg" alt="Товар 4">
                 <p>Товар 4</p>
+                <p>Цена: 250 ₽</p>
             </div>
         </div>
         <div class="form" style="display: none;">
@@ -112,18 +116,20 @@
             <p>Пожалуйста, введите ваше имя и email:</p>
             <input type="text" id="name" placeholder="Ваше имя">
             <input type="email" id="email" placeholder="Ваш email">
-            <button onclick="sendData()">Отправить данные</button>
+            <button onclick="sendData()">Купить</button>
         </div>
     </div>
     <!-- Скрипты -->
     <script>
         let selectedProduct = '';
+        let selectedPrice = 0;
 
-        function selectProduct(productName) {
+        function selectProduct(productName, price) {
             selectedProduct = productName;
+            selectedPrice = price;
             document.querySelector('.products').style.display = 'none';
             document.querySelector('.form').style.display = 'block';
-            document.getElementById('selected-product').innerText = `Вы выбрали: ${productName}`;
+            document.getElementById('selected-product').innerText = `Вы выбрали: ${productName} - ${price} ₽`;
         }
 
         function sendData() {
@@ -137,6 +143,7 @@
 
             const data = {
                 product: selectedProduct,
+                price: selectedPrice,
                 name: name,
                 email: email
             };
