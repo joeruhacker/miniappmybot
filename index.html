@@ -49,25 +49,32 @@
     </div>
 
     <script>
-        // Инициализация Telegram Web App
+        // Инициализация Telegram WebApp
         let tg = window.Telegram.WebApp;
+
+        // Расширяем на весь экран
         tg.expand();
 
         // Получаем userId
-        let userId = tg.initDataUnsafe.user.id;
-        console.log('User ID:', userId);
+        let userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
+
+        if (!userId) {
+            console.error('Не удалось получить идентификатор пользователя');
+            alert('Ошибка: Пожалуйста, убедитесь, что вы открываете приложение внутри Telegram и начали диалог с ботом.');
+        } else {
+            console.log('User ID:', userId);
+        }
 
         let cart = [];
         let totalPrice = 0;
 
         function addToCart(item, price) {
             cart.push({item: item, price: price});
-            console.log('Товар добавлен в корзину:', cart);
             updateCart();
+            console.log('Товар добавлен в корзину:', item, price);
         }
 
         function updateCart() {
-            console.log('Обновление корзины...');
             let cartItems = document.getElementById('cartItems');
             cartItems.innerHTML = '';
             totalPrice = 0;
@@ -83,6 +90,12 @@
         }
 
         function pay() {
+            if (!userId) {
+                console.error('userId не определен');
+                alert('Ошибка: Не удалось получить идентификатор пользователя.');
+                return;
+            }
+
             // Отправка данных на вебхук n8n
             let data = {
                 chat_id: userId,
