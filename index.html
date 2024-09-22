@@ -49,29 +49,13 @@
     </div>
 
     <script>
-        // Инициализация Telegram WebApp
+        // Инициализация Telegram Web App
         let tg = window.Telegram.WebApp;
+        tg.expand();
 
-        console.log('window.Telegram:', window.Telegram);
-        console.log('tg:', tg);
-        console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
-
-        let userId;
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-            userId = tg.initDataUnsafe.user.id;
-            console.log('User ID:', userId);
-            // Расширяем на весь экран (опционально)
-            tg.expand();
-        } else {
-            console.error('Не удалось получить идентификатор пользователя');
-            alert('Ошибка: Пожалуйста, убедитесь, что вы начали диалог с ботом и открываете приложение внутри Telegram.');
-            // Отключаем кнопку оплаты
-            document.getElementById('payButton').disabled = true;
-            // Отключаем другие кнопки
-            document.querySelectorAll('button').forEach(function(button) {
-                button.disabled = true;
-            });
-        }
+        // Получаем userId без проверок
+        let userId = tg.initDataUnsafe.user.id;
+        console.log('User ID:', userId);
 
         let cart = [];
         let totalPrice = 0;
@@ -98,14 +82,7 @@
         }
 
         function pay() {
-            // Проверяем, что userId получен
-            if (!userId) {
-                console.error('userId не определен');
-                alert('Ошибка: Не удалось получить идентификатор пользователя.');
-                return;
-            }
-
-            // Отправка данных на вебхук n8n
+            // Отправка данных на вебхук n8n без дополнительных проверок
             let data = {
                 chat_id: userId,
                 cart: cart,
