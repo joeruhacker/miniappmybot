@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Магазин</title>
     <style>
-        /* Ваши стили остаются без изменений */
+        /* Стили остаются без изменений */
         body {
             font-family: Arial, sans-serif;
             background-color: #f2f2f2;
@@ -111,14 +111,11 @@
     </div>
 
     <script>
-        // Ваши реальные значения
-        const telegramBotToken = '7473288953:AAGB98Ib5J2lJ4Qspq0b_LrT71_gAru2INo';
-        const providerToken = '1744374395:TEST:44c750690daed338409d'; // Например, Stripe
+        const webhookUrl = 'https://n8n.chatforma.com/webhook/494/webhook/telegram-invoice'; // Замените на ваш URL вебхука n8n
 
         let cart = [];
         let total = 0;
 
-        // Получение ID пользователя из Telegram Web Apps
         const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
 
         function addToCart(name, price) {
@@ -144,57 +141,33 @@
                 return;
             }
 
-            // Детали счета
-            const title = 'Оплата заказа';
-            const description = `Оплата заказа на сумму ${total} рублей`;
-            const payload = `order_${userId}_${Date.now()}`; // Уникальный идентификатор платежа
-            const currency = 'RUB';
-            const prices = [
-                {
-                    label: 'Итого',
-                    amount: total * 100, // Сумма в копейках
-                },
-            ];
-
-            // Подготовка тела запроса
-            const requestBody = {
-                chat_id: userId, // Отправка счета непосредственно пользователю
-                title: title,
-                description: description,
-                payload: payload,
-                provider_token: providerToken,
-                currency: currency,
-                prices: prices,
-                start_parameter: 'start_pay',
-                need_name: true, // Запрашивать имя пользователя
-                need_phone_number: false,
-                need_email: false,
-                need_shipping_address: false,
-                is_flexible: false
+            const order = {
+                userId: userId,
+                cart: cart,
+                total: total
             };
 
             try {
-                const response = await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendInvoice`, {
+                const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify(order)
                 });
 
                 const data = await response.json();
 
-                if (!data.ok) {
-                    throw new Error(`Ошибка Telegram API: ${data.description}`);
+                if (data.status === 'success') {
+                    showMessage('Счет отправлен в Telegram!', 'success');
+                    cart = [];
+                    total = 0;
+                    renderCart();
+                } else {
+                    throw new Error(data.message);
                 }
-
-                showMessage('Счет успешно отправлен!', 'success');
-                // Очистка корзины
-                cart = [];
-                total = 0;
-                renderCart();
             } catch (error) {
-                showMessage(`Запрос не удался: ${error.message}`, 'error');
+                showMessage(`Ошибка: ${error.message}`, 'error');
             }
         }
 
@@ -208,7 +181,6 @@
             }, 5000);
         }
 
-        // Закрытие Web App после отправки данных
         window.Telegram.WebApp.ready();
     </script>
 </body>
