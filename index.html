@@ -50,19 +50,25 @@
 
     <script>
         // Инициализация Telegram Web App
-        let tg = window.Telegram.WebApp;
+        let tg = window.Telegram ? window.Telegram.WebApp : null;
 
-        // Расширяем на весь экран (опционально)
-        tg.expand();
-
-        // Получаем userId
         let userId;
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-            userId = tg.initDataUnsafe.user.id;
-            console.log('User ID:', userId);
+        if (tg) {
+            // Расширяем на весь экран (опционально)
+            tg.expand();
+
+            // Получаем userId
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                userId = tg.initDataUnsafe.user.id;
+                console.log('User ID:', userId);
+            } else {
+                console.error('Не удалось получить идентификатор пользователя');
+                alert('Ошибка: Пожалуйста, откройте приложение внутри Telegram.');
+            }
         } else {
-            console.error('Не удалось получить идентификатор пользователя');
-            alert('Ошибка: Пожалуйста, откройте приложение внутри Telegram.');
+            console.warn('Telegram WebApp не доступен. Приложение должно быть запущено внутри Telegram.');
+            // Для тестирования вне Telegram можно задать тестовый userId
+            userId = '5371541339';
         }
 
         let cart = [];
@@ -91,8 +97,8 @@
 
         function pay() {
             // Проверяем, что userId получен
-            if (!userId) {
-                console.error('userId не определен');
+            if (!userId || userId === 'TEST_USER_ID') {
+                console.error('userId не определен или является тестовым');
                 alert('Ошибка: Не удалось получить идентификатор пользователя.');
                 return;
             }
@@ -106,7 +112,7 @@
 
             console.log('Отправляемые данные:', data);
 
-            fetch('https://YOUR_N8N_WEBHOOK_URL', {
+            fetch('https://n8n.chatforma.com/webhook/webhook', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
@@ -115,7 +121,9 @@
                 if (response.ok) {
                     console.log('Заказ успешно отправлен');
                     alert('Заказ отправлен! Проверьте бот для получения счета.');
-                    tg.close(); // Закрываем веб-приложение
+                    if (tg) {
+                        tg.close(); // Закрываем веб-приложение
+                    }
                 } else {
                     response.text().then(function(text) {
                         console.error('Ошибка при отправке заказа:', response.status, text);
