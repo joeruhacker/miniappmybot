@@ -1,200 +1,100 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
     <title>Магазин</title>
     <style>
-        /* Стили остаются без изменений */
+        /* CSS стили */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 20px;
         }
         .product {
-            display: flex;
-            justify-content: space-between;
+            border: 1px solid #ddd;
+            padding: 15px;
             margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #ddd;
         }
-        .product button {
-            padding: 5px 10px;
-            background-color: #28a745;
-            border: none;
-            color: white;
-            border-radius: 4px;
-            cursor: pointer;
+        .product h2 {
+            margin-top: 0;
         }
-        .product button:hover {
-            background-color: #218838;
-        }
-        .cart {
+        #cart {
             margin-top: 20px;
         }
-        .cart h2 {
-            margin-bottom: 10px;
-        }
-        .cart ul {
-            list-style: none;
-            padding: 0;
-        }
-        .cart li {
-            margin-bottom: 5px;
-        }
-        .pay-button {
-            margin-top: 20px;
-            padding: 10px;
-            width: 100%;
-            background-color: #007bff;
-            border: none;
-            color: white;
+        #payButton {
+            padding: 10px 20px;
             font-size: 16px;
-            border-radius: 4px;
+        }
+        button {
             cursor: pointer;
-        }
-        .pay-button:hover {
-            background-color: #0056b3;
-        }
-        .message {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 4px;
-            display: none;
-        }
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Магазин</h1>
-        <div class="product">
-            <div>
-                <h3>Roblox</h3>
-                <p>Цена: 100 рублей</p>
-            </div>
-            <button onclick="addToCart('Roblox', 100)">Добавить</button>
-        </div>
-        <div class="product">
-            <div>
-                <h3>iTunes</h3>
-                <p>Цена: 200 рублей</p>
-            </div>
-            <button onclick="addToCart('iTunes', 200)">Добавить</button>
-        </div>
-
-        <div class="cart">
-            <h2>Корзина</h2>
-            <ul id="cart-items">
-                <!-- Список товаров -->
-            </ul>
-            <p><strong>Итого: </strong><span id="total">0</span> рублей</p>
-            <button class="pay-button" onclick="pay()">Оплатить</button>
-        </div>
-
-        <div id="message" class="message"></div>
+    <h1>Магазин цифровых товаров</h1>
+    <div class="product">
+        <h2>Robux</h2>
+        <p>Цена: 100 руб.</p>
+        <button onclick="addToCart('Robux', 100)">Добавить в корзину</button>
+    </div>
+    <div class="product">
+        <h2>iTunes карта</h2>
+        <p>Цена: 200 руб.</p>
+        <button onclick="addToCart('iTunes карта', 200)">Добавить в корзину</button>
+    </div>
+    <div id="cart">
+        <h2>Корзина</h2>
+        <ul id="cartItems"></ul>
+        <p>Итого: <span id="totalPrice">0</span> руб.</p>
+        <button id="payButton" onclick="pay()" disabled>Оплатить</button>
     </div>
 
     <script>
-        // Ваш рабочий URL вебхука
-        const webhookUrl = 'https://n8n.chatforma.com/webhook/494/webhook/telegram-invoice';
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Расширяем на весь экран
 
+        let userId = tg.initDataUnsafe.user.id;
         let cart = [];
-        let total = 0;
+        let totalPrice = 0;
 
-        // Устанавливаем фиксированный ID пользователя
-        let userId = 5371541339;
-
-        function addToCart(name, price) {
-            cart.push({ name, price });
-            total += price;
-            renderCart();
+        function addToCart(item, price) {
+            cart.push({item: item, price: price});
+            updateCart();
         }
 
-        function renderCart() {
-            const cartItems = document.getElementById('cart-items');
+        function updateCart() {
+            let cartItems = document.getElementById('cartItems');
             cartItems.innerHTML = '';
-            cart.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = `${item.name} - ${item.price} руб.`;
+            totalPrice = 0;
+            cart.forEach(function(product) {
+                let li = document.createElement('li');
+                li.textContent = product.item + ' - ' + product.price + ' руб.';
                 cartItems.appendChild(li);
+                totalPrice += product.price;
             });
-            document.getElementById('total').textContent = total;
+            document.getElementById('totalPrice').textContent = totalPrice;
+            document.getElementById('payButton').disabled = cart.length === 0;
         }
 
-        async function pay() {
-            console.log('Кнопка "Оплатить" нажата'); // Отладка
-
-            if (cart.length === 0) {
-                showMessage('Корзина пуста!', 'error');
-                return;
-            }
-
-            const order = {
-                userId: userId,
+        function pay() {
+            // Отправка данных на вебхук n8n
+            let data = {
+                chat_id: userId,
                 cart: cart,
-                total: total
+                total_price: totalPrice
             };
-
-            console.log('Отправка заказа:', order); // Отладка
-
-            try {
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(order)
-                });
-
-                console.log('Ответ от сервера:', response); // Отладка
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Неизвестная ошибка');
-                }
-
-                const data = await response.json();
-                console.log('Данные ответа:', data); // Отладка
-
-                // Предполагаем, что n8n возвращает { ok: true } при успешной обработке
-                if (data.ok) {
-                    showMessage('Счет отправлен в Telegram!', 'success');
-                    cart = [];
-                    total = 0;
-                    renderCart();
+            fetch('https://n8n.chatforma.com/webhook/webhook', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            }).then(function(response) {
+                if (response.ok) {
+                    alert('Заказ отправлен! Проверьте бот для получения счета.');
+                    tg.close(); // Закрываем веб-приложение
                 } else {
-                    throw new Error(data.description || 'Неизвестная ошибка');
+                    alert('Ошибка при отправке заказа.');
                 }
-            } catch (error) {
-                console.error('Ошибка при отправке:', error); // Отладка
-                showMessage(`Ошибка: ${error.message}`, 'error');
-            }
-        }
-
-        function showMessage(message, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = message;
-            messageDiv.className = 'message ' + type;
-            messageDiv.style.display = 'block';
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
+            });
         }
     </script>
 </body>
