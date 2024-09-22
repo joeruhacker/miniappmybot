@@ -111,12 +111,25 @@
     </div>
 
     <script>
-        const webhookUrl = 'https://n8n.chatforma.com/webhook/494/webhook/telegram-invoice'; // Замените на ваш URL вебхука n8n
+        // Ваш рабочий URL вебхука
+        const webhookUrl = 'https://n8n.chatforma.com/webhook/494/webhook/telegram-invoice';
 
         let cart = [];
         let total = 0;
 
-        const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
+        // Получение ID пользователя из Telegram Web Apps
+        let userId = null;
+
+        // Инициализация Telegram Web App
+        window.Telegram.WebApp.ready();
+        const initData = window.Telegram.WebApp.initDataUnsafe;
+        if (initData && initData.user && initData.user.id) {
+            userId = initData.user.id;
+            console.log('User ID:', userId); // Отладка
+        } else {
+            showMessage('Не удалось получить ID пользователя.', 'error');
+            console.error('Не удалось получить ID пользователя из initDataUnsafe.');
+        }
 
         function addToCart(name, price) {
             cart.push({ name, price });
@@ -136,6 +149,14 @@
         }
 
         async function pay() {
+            console.log('Кнопка "Оплатить" нажата'); // Отладка
+
+            if (!userId) {
+                showMessage('ID пользователя не определен.', 'error');
+                console.error('ID пользователя не определен.');
+                return;
+            }
+
             if (cart.length === 0) {
                 showMessage('Корзина пуста!', 'error');
                 return;
@@ -147,6 +168,8 @@
                 total: total
             };
 
+            console.log('Отправка заказа:', order); // Отладка
+
             try {
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
@@ -156,17 +179,27 @@
                     body: JSON.stringify(order)
                 });
 
-                const data = await response.json();
+                console.log('Ответ от сервера:', response); // Отладка
 
-                if (data.status === 'success') {
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Неизвестная ошибка');
+                }
+
+                const data = await response.json();
+                console.log('Данные ответа:', data); // Отладка
+
+                // Предполагаем, что n8n возвращает { ok: true } при успешной обработке
+                if (data.ok) {
                     showMessage('Счет отправлен в Telegram!', 'success');
                     cart = [];
                     total = 0;
                     renderCart();
                 } else {
-                    throw new Error(data.message);
+                    throw new Error(data.description || 'Неизвестная ошибка');
                 }
             } catch (error) {
+                console.error('Ошибка при отправке:', error); // Отладка
                 showMessage(`Ошибка: ${error.message}`, 'error');
             }
         }
@@ -180,8 +213,6 @@
                 messageDiv.style.display = 'none';
             }, 5000);
         }
-
-        window.Telegram.WebApp.ready();
     </script>
 </body>
 </html>
