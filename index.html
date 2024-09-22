@@ -3,19 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <title>Магазин цифровых товаров</title>
+    <!-- Добавляем мета-тег viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <style>
         /* Стили оформления */
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f2f2f2;
+        html, body {
+            height: 100%;
             margin: 0;
             padding: 0;
-            color: #333;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #f2f2f2);
+            color: var(--tg-theme-text-color, #333);
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
         h1, h2 {
             text-align: center;
@@ -27,8 +37,12 @@
             justify-content: center;
             margin-bottom: 20px;
         }
+        .products {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
         .product, .cart-item {
-            background-color: #fff;
+            background-color: var(--tg-theme-secondary-bg-color, #fff);
             padding: 20px;
             margin: 10px;
             border-radius: 10px;
@@ -45,12 +59,12 @@
             font-weight: 400;
         }
         .product p, .cart-item p {
-            color: #666;
+            color: var(--tg-theme-hint-color, #666);
         }
         .add-to-cart, .remove-from-cart, #checkout {
             display: inline-block;
-            background-color: #007bff;
-            color: #fff;
+            background-color: var(--tg-theme-button-color, #007bff);
+            color: var(--tg-theme-button-text-color, #fff);
             padding: 12px 20px;
             text-align: center;
             border-radius: 30px;
@@ -60,7 +74,7 @@
             transition: background-color 0.2s;
         }
         .add-to-cart:hover, .remove-from-cart:hover, #checkout:hover {
-            background-color: #0056b3;
+            background-color: var(--tg-theme-button-color, #0056b3);
         }
         .remove-from-cart {
             background-color: #dc3545;
@@ -120,10 +134,21 @@
         <div id="checkout">Оплатить</div>
     </div>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Получаем chat_id из URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const chat_id = urlParams.get('chat_id');
+        // Инициализация Telegram Web Apps
+        const tg = window.Telegram.WebApp;
+
+        // Устанавливаем цвета темы приложения
+        document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
+        document.body.style.color = tg.themeParams.text_color || '#000000';
+
+        // Расширяем приложение на весь экран
+        tg.expand();
+
+        // Получаем chat_id из initData
+        const initDataUnsafe = tg.initDataUnsafe;
+        const chat_id = initDataUnsafe.user ? initDataUnsafe.user.id : null;
 
         if (!chat_id) {
             alert('Ошибка: chat_id не найден');
@@ -185,32 +210,7 @@
 
         // Функция для отображения уведомлений
         function showNotification(message) {
-            const notification = document.createElement('div');
-            notification.style.position = 'fixed';
-            notification.style.bottom = '20px';
-            notification.style.left = '50%';
-            notification.style.transform = 'translateX(-50%)';
-            notification.style.backgroundColor = '#333';
-            notification.style.color = '#fff';
-            notification.style.padding = '15px 20px';
-            notification.style.borderRadius = '30px';
-            notification.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
-            notification.style.opacity = '0';
-            notification.style.transition = 'opacity 0.3s';
-            notification.innerText = message;
-
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.style.opacity = '1';
-            }, 10);
-
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 2000);
+            tg.showAlert(message);
         }
 
         // Обработка оплаты
@@ -244,12 +244,7 @@
                 updateCart();
 
                 // Закрываем приложение
-                if (window.Telegram.WebApp) {
-                    Telegram.WebApp.close();
-                } else {
-                    // Если Telegram WebApp недоступен, закрываем окно браузера (не всегда работает)
-                    window.close();
-                }
+                tg.close();
             })
             .catch((error) => {
                 console.error('Ошибка:', error);
