@@ -138,17 +138,15 @@
     <script>
         // Инициализация Telegram Web Apps
         const tg = window.Telegram.WebApp;
+        tg.expand();
 
         // Устанавливаем цвета темы приложения
         document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
         document.body.style.color = tg.themeParams.text_color || '#000000';
 
-        // Расширяем приложение на весь экран
-        tg.expand();
-
-        // Получаем chat_id из initData
-        const initDataUnsafe = tg.initDataUnsafe;
-        const chat_id = initDataUnsafe.user ? initDataUnsafe.user.id : null;
+        // Получаем chat_id из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const chat_id = urlParams.get('chat_id');
 
         if (!chat_id) {
             alert('Ошибка: chat_id не найден');
