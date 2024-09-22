@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Магазин</title>
+    <title>Магазин цифровых товаров</title>
     <style>
         /* CSS стили */
         body {
@@ -49,16 +49,25 @@
     </div>
 
     <script>
-        // Проверяем, доступен ли объект Telegram WebApp
+        // Проверяем доступность Telegram WebApp
         let tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg) {
             tg.expand(); // Расширяем на весь экран
+            console.log('Telegram WebApp инициализирован');
         } else {
-            console.warn('Telegram WebApp не доступен. Используется режим тестирования.');
+            console.warn('Telegram WebApp не доступен. Приложение должно быть запущено внутри Telegram.');
+            alert('Ошибка: Приложение должно быть запущено внутри Telegram.');
         }
 
-        // Получаем userId или используем заглушку для тестирования
-        let userId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id ? tg.initDataUnsafe.user.id : 'TEST_USER_ID';
+        // Получаем userId или показываем ошибку
+        let userId;
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+            userId = tg.initDataUnsafe.user.id;
+            console.log('User ID получен:', userId);
+        } else {
+            console.error('Не удалось получить идентификатор пользователя');
+            alert('Ошибка: Не удалось получить идентификатор пользователя. Пожалуйста, откройте приложение внутри Telegram.');
+        }
 
         let cart = [];
         let totalPrice = 0;
@@ -66,6 +75,7 @@
         function addToCart(item, price) {
             cart.push({item: item, price: price});
             updateCart();
+            console.log('Товар добавлен в корзину:', item, price);
         }
 
         function updateCart() {
@@ -80,31 +90,44 @@
             });
             document.getElementById('totalPrice').textContent = totalPrice;
             document.getElementById('payButton').disabled = cart.length === 0;
+            console.log('Корзина обновлена:', cart, 'Общая сумма:', totalPrice);
         }
 
         function pay() {
+            // Проверяем, что userId получен
+            if (!userId) {
+                console.error('userId не определен');
+                alert('Ошибка: Не удалось получить идентификатор пользователя.');
+                return;
+            }
+
             // Отправка данных на вебхук n8n
             let data = {
                 chat_id: userId,
                 cart: cart,
                 total_price: totalPrice
             };
-            fetch('https://YOUR_N8N_WEBHOOK_URL', {
+
+            console.log('Отправляемые данные:', data);
+
+            fetch('https://n8n.chatforma.com/webhook/webhook', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
-            }).then(function(response) {
+            })
+            .then(function(response) {
                 if (response.ok) {
+                    console.log('Заказ успешно отправлен');
                     alert('Заказ отправлен! Проверьте бот для получения счета.');
-                    if (tg) {
-                        tg.close(); // Закрываем веб-приложение
-                    } else {
-                        console.warn('WebApp не может быть закрыт. Telegram WebApp не доступен.');
-                    }
+                    tg.close(); // Закрываем веб-приложение
                 } else {
-                    alert('Ошибка при отправке заказа.');
+                    response.text().then(function(text) {
+                        console.error('Ошибка при отправке заказа:', response.status, text);
+                        alert('Ошибка при отправке заказа.');
+                    });
                 }
-            }).catch(function(error) {
+            })
+            .catch(function(error) {
                 console.error('Ошибка при отправке данных:', error);
                 alert('Ошибка при отправке заказа.');
             });
