@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Выбор товара</title>
-    <!-- Подключение Telegram Web Apps SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Стили -->
     <style>
         body {
@@ -123,6 +121,11 @@
     <script>
         let selectedProduct = '';
         let selectedPrice = 0;
+        let telegramUserId = 0;
+
+        // Получаем ID пользователя Telegram
+        window.Telegram.WebApp.ready();
+        telegramUserId = window.Telegram.WebApp.initDataUnsafe.user.id;
 
         function selectProduct(productName, price) {
             selectedProduct = productName;
@@ -145,14 +148,31 @@
                 product: selectedProduct,
                 price: selectedPrice,
                 name: name,
-                email: email
+                email: email,
+                telegram_user_id: telegramUserId
             };
 
-            // Отправляем данные боту
-            Telegram.WebApp.sendData(JSON.stringify(data));
-
-            // Отображаем сообщение пользователю
-            document.querySelector('.form').innerHTML = '<p class="loading">Спасибо! Ваши данные отправлены.</p>';
+            // Отправляем данные на FastAPI-сервер
+            fetch('http://localhost:8000/purchase', {  // Замените на реальный URL вашего FastAPI-сервера
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                document.querySelector('.form').innerHTML = '<p class="loading">Спасибо! Ваши данные отправлены.</p>';
+            })
+            .catch(error => {
+                alert('Произошла ошибка при отправке данных. Попробуйте еще раз.');
+                console.error('Error:', error);
+            });
         }
     </script>
 </body>
