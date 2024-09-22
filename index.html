@@ -49,24 +49,20 @@
     </div>
 
     <script>
-        // Проверяем доступность Telegram WebApp
-        let tg = window.Telegram ? window.Telegram.WebApp : null;
-        if (tg) {
-            tg.expand(); // Расширяем на весь экран
-            console.log('Telegram WebApp инициализирован');
-        } else {
-            console.warn('Telegram WebApp не доступен. Приложение должно быть запущено внутри Telegram.');
-            alert('Ошибка: Приложение должно быть запущено внутри Telegram.');
-        }
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
 
-        // Получаем userId или показываем ошибку
+        // Расширяем на весь экран (опционально)
+        tg.expand();
+
+        // Получаем userId
         let userId;
-        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
             userId = tg.initDataUnsafe.user.id;
-            console.log('User ID получен:', userId);
+            console.log('User ID:', userId);
         } else {
             console.error('Не удалось получить идентификатор пользователя');
-            alert('Ошибка: Не удалось получить идентификатор пользователя. Пожалуйста, откройте приложение внутри Telegram.');
+            alert('Ошибка: Пожалуйста, откройте приложение внутри Telegram.');
         }
 
         let cart = [];
@@ -110,7 +106,7 @@
 
             console.log('Отправляемые данные:', data);
 
-            fetch('https://n8n.chatforma.com/webhook/webhook', {
+            fetch('https://YOUR_N8N_WEBHOOK_URL', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
