@@ -111,8 +111,11 @@
     </div>
 
     <script>
-        // Ваш рабочий URL вебхука
-        const webhookUrl = 'https://n8n.chatforma.com/webhook/494/webhook/telegram-invoice';
+        // Ваш рабочий токен бота
+        const botToken = '7473288953:AAGB98Ib5J2lJ4Qspq0b_LrT71_gAru2INo'; // Замените на ваш токен
+
+        // URL для отправки счета
+        const sendInvoiceUrl = `https://api.telegram.org/bot${botToken}/sendInvoice`;
 
         let cart = [];
         let total = 0;
@@ -131,11 +134,14 @@
             const pairs = withoutHash.split('&');
             pairs.forEach(pair => {
                 const [key, value] = pair.split('=');
-                data[decodeURIComponent(key)] = decodeURIComponent(value);
+                if (key && value) {
+                    data[decodeURIComponent(key)] = decodeURIComponent(value);
+                }
             });
             return data;
         }
 
+        // Извлечение initData
         const initData = window.Telegram.WebApp.initData;
         console.log('initData:', initData); // Отладка
 
@@ -145,6 +151,9 @@
         if (parsedData.user_id) {
             userId = parsedData.user_id;
             console.log('User ID:', userId); // Отладка
+        } else if (parsedData.from_id) {
+            userId = parsedData.from_id;
+            console.log('User ID из from_id:', userId); // Отладка
         } else {
             showMessage('ID пользователя не определен.', 'error');
             console.error('Не удалось получить ID пользователя из initData.');
@@ -181,34 +190,37 @@
                 return;
             }
 
-            const order = {
-                userId: userId,
-                cart: cart,
-                total: total
+            // Подготовка данных для счета
+            const invoiceData = {
+                chat_id: userId,
+                title: 'Оплата заказа',
+                description: `Оплата заказа на сумму ${total} рублей`,
+                payload: `order_${userId}_${Date.now()}`,
+                provider_token: '1744374395:TEST:44c750690daed338409d', // Замените на ваш provider_token
+                currency: 'RUB',
+                prices: cart.map(item => ({
+                    label: item.name,
+                    amount: item.price * 100 // В копейках
+                })),
+                start_parameter: 'start_pay'
             };
 
-            console.log('Отправка заказа:', order); // Отладка
+            console.log('Отправка счета:', invoiceData); // Отладка
 
             try {
-                const response = await fetch(webhookUrl, {
+                const response = await fetch(sendInvoiceUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(order)
+                    body: JSON.stringify(invoiceData)
                 });
 
                 console.log('Ответ от сервера:', response); // Отладка
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Неизвестная ошибка');
-                }
-
                 const data = await response.json();
                 console.log('Данные ответа:', data); // Отладка
 
-                // Предполагаем, что n8n возвращает { ok: true } при успешной обработке
                 if (data.ok) {
                     showMessage('Счет отправлен в Telegram!', 'success');
                     cart = [];
@@ -218,7 +230,7 @@
                     throw new Error(data.description || 'Неизвестная ошибка');
                 }
             } catch (error) {
-                console.error('Ошибка при отправке:', error); // Отладка
+                console.error('Ошибка при отправке счета:', error); // Отладка
                 showMessage(`Ошибка: ${error.message}`, 'error');
             }
         }
