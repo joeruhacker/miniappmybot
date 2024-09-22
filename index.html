@@ -49,28 +49,25 @@
     </div>
 
     <script>
-        // Инициализация Telegram Web App
-        let tg = window.Telegram ? window.Telegram.WebApp : null;
+        // Инициализация Telegram WebApp
+        let tg = window.Telegram.WebApp;
+
+        console.log('window.Telegram:', window.Telegram);
+        console.log('tg:', tg);
+        console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
 
         let userId;
-        if (tg) {
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+            userId = tg.initDataUnsafe.user.id;
+            console.log('User ID:', userId);
             // Расширяем на весь экран (опционально)
             tg.expand();
-
-            // Получаем userId
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-                userId = tg.initDataUnsafe.user.id;
-                console.log('User ID:', userId);
-            } else {
-                console.error('Не удалось получить идентификатор пользователя');
-                alert('Ошибка: Пожалуйста, откройте приложение внутри Telegram.');
-                // Отключаем кнопку оплаты
-                document.getElementById('payButton').disabled = true;
-            }
         } else {
-            console.error('Telegram WebApp не доступен. Приложение должно быть запущено внутри Telegram.');
-            alert('Ошибка: Приложение должно быть запущено внутри Telegram.');
-            // Отключаем кнопки взаимодействия
+            console.error('Не удалось получить идентификатор пользователя');
+            alert('Ошибка: Пожалуйста, убедитесь, что вы начали диалог с ботом и открываете приложение внутри Telegram.');
+            // Отключаем кнопку оплаты
+            document.getElementById('payButton').disabled = true;
+            // Отключаем другие кнопки
             document.querySelectorAll('button').forEach(function(button) {
                 button.disabled = true;
             });
@@ -126,9 +123,7 @@
                 if (response.ok) {
                     console.log('Заказ успешно отправлен');
                     alert('Заказ отправлен! Проверьте бот для получения счета.');
-                    if (tg) {
-                        tg.close(); // Закрываем веб-приложение
-                    }
+                    tg.close(); // Закрываем веб-приложение
                 } else {
                     response.text().then(function(text) {
                         console.error('Ошибка при отправке заказа:', response.status, text);
