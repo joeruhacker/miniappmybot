@@ -123,12 +123,24 @@
         // Инициализация Telegram Web App
         window.Telegram.WebApp.ready();
         const initData = window.Telegram.WebApp.initDataUnsafe;
+        console.log('initDataUnsafe:', initData); // Отладка
+
         if (initData && initData.user && initData.user.id) {
             userId = initData.user.id;
             console.log('User ID:', userId); // Отладка
+        } else if (initData && initData.from && initData.from.id) {
+            userId = initData.from.id;
+            console.log('User ID из from:', userId); // Отладка
         } else {
-            showMessage('Не удалось получить ID пользователя.', 'error');
-            console.error('Не удалось получить ID пользователя из initDataUnsafe.');
+            // Попытка вручную извлечь userId из строки initData
+            const params = new URLSearchParams(window.Telegram.WebApp.initData);
+            userId = params.get('user_id') || params.get('from_id');
+            if (userId) {
+                console.log('User ID из initData:', userId);
+            } else {
+                showMessage('ID пользователя не определен.', 'error');
+                console.error('Не удалось получить ID пользователя из initData.');
+            }
         }
 
         function addToCart(name, price) {
