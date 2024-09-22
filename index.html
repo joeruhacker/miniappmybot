@@ -6,56 +6,94 @@
     <style>
         /* Стили оформления */
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f2f2f2;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            color: #333;
         }
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+            font-weight: 300;
         }
         .products, .cart {
             display: flex;
             flex-wrap: wrap;
+            justify-content: center;
             margin-bottom: 20px;
         }
         .product, .cart-item {
             background-color: #fff;
-            padding: 15px;
+            padding: 20px;
             margin: 10px;
-            border-radius: 5px;
-            flex: 1 1 calc(50% - 40px);
+            border-radius: 10px;
+            flex: 1 1 calc(25% - 40px);
             box-sizing: border-box;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .product:hover, .cart-item:hover {
+            transform: translateY(-5px);
         }
         .product h2, .cart-item h3 {
             margin-top: 0;
+            font-weight: 400;
         }
-        .add-to-cart, .remove-from-cart {
+        .product p, .cart-item p {
+            color: #666;
+        }
+        .add-to-cart, .remove-from-cart, #checkout {
+            display: inline-block;
             background-color: #007bff;
             color: #fff;
-            padding: 10px;
+            padding: 12px 20px;
             text-align: center;
-            border-radius: 5px;
+            border-radius: 30px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        .add-to-cart:hover, .remove-from-cart:hover, #checkout:hover {
+            background-color: #0056b3;
         }
         .remove-from-cart {
             background-color: #dc3545;
         }
+        .remove-from-cart:hover {
+            background-color: #c82333;
+        }
         #checkout {
             background-color: #28a745;
-            color: #fff;
-            padding: 15px;
-            text-align: center;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
+            margin: 0 auto;
+            display: block;
+        }
+        #checkout:hover {
+            background-color: #218838;
         }
         /* Адаптивность */
-        @media (max-width: 600px) {
+        @media (max-width: 1024px) {
+            .product, .cart-item {
+                flex: 1 1 calc(33.333% - 40px);
+            }
+        }
+        @media (max-width: 768px) {
+            .product, .cart-item {
+                flex: 1 1 calc(50% - 40px);
+            }
+        }
+        @media (max-width: 480px) {
             .product, .cart-item {
                 flex: 1 1 100%;
+            }
+            .add-to-cart, .remove-from-cart, #checkout {
+                width: 100%;
+                box-sizing: border-box;
             }
         }
     </style>
@@ -94,11 +132,13 @@
         let cart = [];
 
         const cartContainer = document.querySelector('.cart');
+        const checkoutButton = document.getElementById('checkout');
 
         function updateCart() {
             cartContainer.innerHTML = '';
             if (cart.length === 0) {
                 cartContainer.innerHTML = '<p>Корзина пуста.</p>';
+                checkoutButton.style.display = 'none';
                 return;
             }
 
@@ -112,6 +152,9 @@
                 `;
                 cartContainer.appendChild(cartItem);
             });
+
+            // Показываем кнопку "Оплатить"
+            checkoutButton.style.display = 'block';
 
             // Добавляем обработчики для кнопок удаления
             document.querySelectorAll('.remove-from-cart').forEach(button => {
@@ -134,15 +177,46 @@
                 const price = parseInt(productElement.getAttribute('data-price'));
 
                 cart.push({ item, price });
-                alert(`${item} добавлен в корзину.`);
+                // Уведомление о добавлении товара
+                showNotification(`${item} добавлен в корзину.`);
                 updateCart();
             });
         });
 
+        // Функция для отображения уведомлений
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.position = 'fixed';
+            notification.style.bottom = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.backgroundColor = '#333';
+            notification.style.color = '#fff';
+            notification.style.padding = '15px 20px';
+            notification.style.borderRadius = '30px';
+            notification.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s';
+            notification.innerText = message;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '1';
+            }, 10);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 2000);
+        }
+
         // Обработка оплаты
-        document.getElementById('checkout').addEventListener('click', () => {
+        checkoutButton.addEventListener('click', () => {
             if (cart.length === 0) {
-                alert('Корзина пуста!');
+                showNotification('Корзина пуста!');
                 return;
             }
 
@@ -157,16 +231,29 @@
                     cart: cart,
                 }),
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Сетевая ошибка');
+                }
+                return response.json();
+            })
             .then(data => {
-                alert('Счет отправлен в Telegram. Пожалуйста, проверьте ваш чат.');
+                showNotification('Счет отправлен в Telegram. Пожалуйста, проверьте ваш чат.');
                 // Очищаем корзину после отправки счета
                 cart = [];
                 updateCart();
+
+                // Закрываем приложение
+                if (window.Telegram.WebApp) {
+                    Telegram.WebApp.close();
+                } else {
+                    // Если Telegram WebApp недоступен, закрываем окно браузера (не всегда работает)
+                    window.close();
+                }
             })
             .catch((error) => {
                 console.error('Ошибка:', error);
-                alert('Произошла ошибка при отправке счета.');
+                showNotification('Произошла ошибка при отправке счета.');
             });
         });
     </script>
