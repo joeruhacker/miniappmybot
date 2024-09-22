@@ -1,249 +1,83 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Магазин</title>
-    <style>
-        /* Стили остаются без изменений */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .product {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #ddd;
-        }
-        .product button {
-            padding: 5px 10px;
-            background-color: #28a745;
-            border: none;
-            color: white;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .product button:hover {
-            background-color: #218838;
-        }
-        .cart {
-            margin-top: 20px;
-        }
-        .cart h2 {
-            margin-bottom: 10px;
-        }
-        .cart ul {
-            list-style: none;
-            padding: 0;
-        }
-        .cart li {
-            margin-bottom: 5px;
-        }
-        .pay-button {
-            margin-top: 20px;
-            padding: 10px;
-            width: 100%;
-            background-color: #007bff;
-            border: none;
-            color: white;
-            font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .pay-button:hover {
-            background-color: #0056b3;
-        }
-        .message {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 4px;
-            display: none;
-        }
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Магазин</h1>
-        <div class="product">
-            <div>
-                <h3>Roblox</h3>
-                <p>Цена: 100 рублей</p>
-            </div>
-            <button onclick="addToCart('Roblox', 100)">Добавить</button>
-        </div>
-        <div class="product">
-            <div>
-                <h3>iTunes</h3>
-                <p>Цена: 200 рублей</p>
-            </div>
-            <button onclick="addToCart('iTunes', 200)">Добавить</button>
-        </div>
-
-        <div class="cart">
-            <h2>Корзина</h2>
-            <ul id="cart-items">
-                <!-- Список товаров -->
-            </ul>
-            <p><strong>Итого: </strong><span id="total">0</span> рублей</p>
-            <button class="pay-button" onclick="pay()">Оплатить</button>
-        </div>
-
-        <div id="message" class="message"></div>
-    </div>
-
-    <script>
-        // Ваш рабочий токен бота
-        const botToken = '7473288953:AAGB98Ib5J2lJ4Qspq0b_LrT71_gAru2INo'; // Замените на ваш токен
-
-        // URL для отправки счета
-        const sendInvoiceUrl = `https://api.telegram.org/bot${botToken}/sendInvoice`;
-
-        let cart = [];
-        let total = 0;
-
-        // Получение ID пользователя из Telegram Web Apps
-        let userId = null;
-
-        // Инициализация Telegram Web App
-        window.Telegram.WebApp.ready();
-
-        // Функция для парсинга initData
-        function parseInitData(initData) {
-            const data = {};
-            const hashIndex = initData.indexOf('#');
-            const withoutHash = hashIndex >= 0 ? initData.substring(0, hashIndex) : initData;
-            const pairs = withoutHash.split('&');
-            pairs.forEach(pair => {
-                const [key, value] = pair.split('=');
-                if (key && value) {
-                    data[decodeURIComponent(key)] = decodeURIComponent(value);
-                }
-            });
-            return data;
-        }
-
-        // Извлечение initData
-        const initData = window.Telegram.WebApp.initData;
-        console.log('initData:', initData); // Отладка
-
-        const parsedData = parseInitData(initData);
-        console.log('Parsed initData:', parsedData); // Отладка
-
-        if (parsedData.user_id) {
-            userId = parsedData.user_id;
-            console.log('User ID:', userId); // Отладка
-        } else if (parsedData.from_id) {
-            userId = parsedData.from_id;
-            console.log('User ID из from_id:', userId); // Отладка
-        } else {
-            showMessage('ID пользователя не определен.', 'error');
-            console.error('Не удалось получить ID пользователя из initData.');
-        }
-
-        function addToCart(name, price) {
-            cart.push({ name, price });
-            total += price;
-            renderCart();
-        }
-
-        function renderCart() {
-            const cartItems = document.getElementById('cart-items');
-            cartItems.innerHTML = '';
-            cart.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = `${item.name} - ${item.price} руб.`;
-                cartItems.appendChild(li);
-            });
-            document.getElementById('total').textContent = total;
-        }
-
-        async function pay() {
-            console.log('Кнопка "Оплатить" нажата'); // Отладка
-
-            if (!userId) {
-                showMessage('ID пользователя не определен.', 'error');
-                console.error('ID пользователя не определен.');
-                return;
-            }
-
-            if (cart.length === 0) {
-                showMessage('Корзина пуста!', 'error');
-                return;
-            }
-
-            // Подготовка данных для счета
-            const invoiceData = {
-                chat_id: userId,
-                title: 'Оплата заказа',
-                description: `Оплата заказа на сумму ${total} рублей`,
-                payload: `order_${userId}_${Date.now()}`,
-                provider_token: '1744374395:TEST:44c750690daed338409d', // Замените на ваш provider_token
-                currency: 'RUB',
-                prices: cart.map(item => ({
-                    label: item.name,
-                    amount: item.price * 100 // В копейках
-                })),
-                start_parameter: 'start_pay'
-            };
-
-            console.log('Отправка счета:', invoiceData); // Отладка
-
-            try {
-                const response = await fetch(sendInvoiceUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(invoiceData)
-                });
-
-                console.log('Ответ от сервера:', response); // Отладка
-
-                const data = await response.json();
-                console.log('Данные ответа:', data); // Отладка
-
-                if (data.ok) {
-                    showMessage('Счет отправлен в Telegram!', 'success');
-                    cart = [];
-                    total = 0;
-                    renderCart();
-                } else {
-                    throw new Error(data.description || 'Неизвестная ошибка');
-                }
-            } catch (error) {
-                console.error('Ошибка при отправке счета:', error); // Отладка
-                showMessage(`Ошибка: ${error.message}`, 'error');
-            }
-        }
-
-        function showMessage(message, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = message;
-            messageDiv.className = 'message ' + type;
-            messageDiv.style.display = 'block';
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
-        }
-    </script>
-</body>
-</html>
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "telegram-invoice"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Получение данных из Webhook\nconst userId = items[0].json.userId;\nconst cart = items[0].json.cart;\nconst total = items[0].json.total;\n\n// Детали счета\nconst title = 'Оплата заказа';\nconst description = `Оплата заказа на сумму ${total} рублей`;\nconst payload = `order_${userId}_${Date.now()}`;\nconst currency = 'RUB';\nconst prices = cart.map(item => ({\n    label: item.name,\n    amount: item.price * 100 // В копейках\n}));\n\nconst invoiceData = {\n    chat_id: userId,\n    title: title,\n    description: description,\n    payload: payload,\n    provider_token: 'YOUR_PROVIDER_TOKEN', // Замените на ваш provider_token\n    currency: currency,\n    prices: prices,\n    start_parameter: 'start_pay'\n};\n\nreturn [\n    {\n        json: invoiceData\n    }\n];"
+      },
+      "name": "Prepare Invoice Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "none",
+        "url": "https://api.telegram.org/botYOUR_BOT_TOKEN/sendInvoice",
+        "method": "POST",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\n  \"chat_id\": \"{{$json.chat_id}}\",\n  \"title\": \"{{$json.title}}\",\n  \"description\": \"{{$json.description}}\",\n  \"payload\": \"{{$json.payload}}\",\n  \"provider_token\": \"{{$json.provider_token}}\",\n  \"currency\": \"{{$json.currency}}\",\n  \"prices\": {{$json.prices}},\n  \"start_parameter\": \"{{$json.start_parameter}}\"\n}"
+      },
+      "name": "Send Invoice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "responseMode": "lastNode",
+        "dataPropertyName": "body",
+        "options": {}
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Invoice Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Invoice Data": {
+      "main": [
+        [
+          {
+            "node": "Send Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Invoice": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
