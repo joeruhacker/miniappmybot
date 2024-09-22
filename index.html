@@ -4,129 +4,104 @@
     <meta charset="UTF-8">
     <title>Магазин цифровых товаров</title>
     <style>
-        /* CSS стили */
+        /* Стили оформления */
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 20px;
         }
         .product {
-            border: 1px solid #ddd;
+            background-color: #fff;
             padding: 15px;
             margin-bottom: 15px;
+            border-radius: 5px;
         }
         .product h2 {
             margin-top: 0;
         }
-        #cart {
-            margin-top: 20px;
-        }
-        #payButton {
-            padding: 10px 20px;
-            font-size: 16px;
-        }
-        button {
+        .add-to-cart {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
             cursor: pointer;
+        }
+        #checkout {
+            background-color: #28a745;
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Магазин цифровых товаров</h1>
-    <div class="product">
+    <h1>Добро пожаловать в наш магазин!</h1>
+    <div class="product" data-item="Robux" data-price="100">
         <h2>Robux</h2>
         <p>Цена: 100 руб.</p>
-        <button onclick="addToCart('Robux', 100)">Добавить в корзину</button>
+        <div class="add-to-cart">Добавить в корзину</div>
     </div>
-    <div class="product">
+    <div class="product" data-item="iTunes карта" data-price="200">
         <h2>iTunes карта</h2>
         <p>Цена: 200 руб.</p>
-        <button onclick="addToCart('iTunes карта', 200)">Добавить в корзину</button>
+        <div class="add-to-cart">Добавить в корзину</div>
     </div>
-    <div id="cart">
-        <h2>Корзина</h2>
-        <ul id="cartItems"></ul>
-        <p>Итого: <span id="totalPrice">0</span> руб.</p>
-        <button id="payButton" onclick="pay()" disabled>Оплатить</button>
-    </div>
+    <div id="checkout">Оплатить</div>
 
     <script>
-        // Инициализация Telegram WebApp
-        let tg = window.Telegram.WebApp;
+        // Получаем chat_id из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const chat_id = urlParams.get('chat_id');
 
-        // Расширяем на весь экран
-        tg.expand();
-
-        // Получаем userId
-        let userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null;
-
-        if (!userId) {
-            console.error('Не удалось получить идентификатор пользователя');
-            alert('Ошибка: Пожалуйста, убедитесь, что вы открываете приложение внутри Telegram и начали диалог с ботом.');
-        } else {
-            console.log('User ID:', userId);
+        if (!chat_id) {
+            alert('Ошибка: chat_id не найден');
         }
 
-        let cart = [];
-        let totalPrice = 0;
+        const cart = [];
 
-        function addToCart(item, price) {
-            cart.push({item: item, price: price});
-            updateCart();
-            console.log('Товар добавлен в корзину:', item, price);
-        }
+        // Добавление товара в корзину
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', () => {
+                const productElement = button.parentElement;
+                const item = productElement.getAttribute('data-item');
+                const price = parseInt(productElement.getAttribute('data-price'));
 
-        function updateCart() {
-            let cartItems = document.getElementById('cartItems');
-            cartItems.innerHTML = '';
-            totalPrice = 0;
-            cart.forEach(function(product) {
-                let li = document.createElement('li');
-                li.textContent = product.item + ' - ' + product.price + ' руб.';
-                cartItems.appendChild(li);
-                totalPrice += product.price;
+                cart.push({ item, price });
+                alert(`${item} добавлен в корзину.`);
             });
-            document.getElementById('totalPrice').textContent = totalPrice;
-            document.getElementById('payButton').disabled = cart.length === 0;
-            console.log('Корзина обновлена:', cart, 'Общая сумма:', totalPrice);
-        }
+        });
 
-        function pay() {
-            if (!userId) {
-                console.error('userId не определен');
-                alert('Ошибка: Не удалось получить идентификатор пользователя.');
+        // Обработка оплаты
+        document.getElementById('checkout').addEventListener('click', () => {
+            if (cart.length === 0) {
+                alert('Корзина пуста!');
                 return;
             }
 
-            // Отправка данных на вебхук n8n
-            let data = {
-                chat_id: userId,
-                cart: cart,
-                total_price: totalPrice
-            };
-
-            console.log('Отправляемые данные:', data);
-
+            // Отправляем данные на n8n через вебхук
             fetch('https://n8n.chatforma.com/webhook/webhook', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: chat_id,
+                    cart: cart,
+                }),
             })
-            .then(function(response) {
-                if (response.ok) {
-                    console.log('Заказ успешно отправлен');
-                    alert('Заказ отправлен! Проверьте бот для получения счета.');
-                    tg.close(); // Закрываем веб-приложение
-                } else {
-                    response.text().then(function(text) {
-                        console.error('Ошибка при отправке заказа:', response.status, text);
-                        alert('Ошибка при отправке заказа.');
-                    });
-                }
+            .then(response => response.json())
+            .then(data => {
+                alert('Счет отправлен в Telegram. Пожалуйста, проверьте ваш чат.');
             })
-            .catch(function(error) {
-                console.error('Ошибка при отправке данных:', error);
-                alert('Ошибка при отправке заказа.');
+            .catch((error) => {
+                console.error('Ошибка:', error);
             });
-        }
+        });
     </script>
 </body>
 </html>
