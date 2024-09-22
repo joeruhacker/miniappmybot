@@ -64,11 +64,16 @@
             } else {
                 console.error('Не удалось получить идентификатор пользователя');
                 alert('Ошибка: Пожалуйста, откройте приложение внутри Telegram.');
+                // Отключаем кнопку оплаты
+                document.getElementById('payButton').disabled = true;
             }
         } else {
-            console.warn('Telegram WebApp не доступен. Приложение должно быть запущено внутри Telegram.');
-            // Для тестирования вне Telegram можно задать тестовый userId
-            userId = '5371541339';
+            console.error('Telegram WebApp не доступен. Приложение должно быть запущено внутри Telegram.');
+            alert('Ошибка: Приложение должно быть запущено внутри Telegram.');
+            // Отключаем кнопки взаимодействия
+            document.querySelectorAll('button').forEach(function(button) {
+                button.disabled = true;
+            });
         }
 
         let cart = [];
@@ -97,8 +102,8 @@
 
         function pay() {
             // Проверяем, что userId получен
-            if (!userId || userId === 'TEST_USER_ID') {
-                console.error('userId не определен или является тестовым');
+            if (!userId) {
+                console.error('userId не определен');
                 alert('Ошибка: Не удалось получить идентификатор пользователя.');
                 return;
             }
